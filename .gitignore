@@ -81,10 +81,8 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# Pamplejuce / JUCE caches
+# Pamplejuce caches (NOT JUCE itself — JUCE is tracked as a git submodule)
 .pamplejuce/
-JUCE/
-modules/JUCE/
 
 # Test outputs
 Testing/Temporary/
