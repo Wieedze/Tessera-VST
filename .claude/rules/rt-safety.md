@@ -79,4 +79,17 @@ Excludes (allocation allowed):
 1. **Hook**: `.claude/hooks/rt-safety-check.sh` runs after every Edit/Write to DSP files. Blocks the agent if a forbidden pattern is found.
 2. **Agent**: `rt-safety-auditor` performs deeper audits on demand or after structural changes.
 3. **Tests**: each DSP module has a `[rt-safety]` tag test category that calls the audio path 1000× and checks for leaks.
-4. **Manual**: at end of each week, run `pluginval` (added in week 12) and a profiler.
+4. **Thread Sanitizer**: rebuild with `-DWITH_THREAD_SANITIZER=ON` (see `.claude/rules/build-and-test.md`) to catch data races at runtime.
+5. **Manual**: at end of each week, run `pluginval` strict and a profiler.
+
+## Pamplejuce's own RT-safety formulation (cross-check)
+
+For redundancy and continuity with the template, Pamplejuce's `CLAUDE.md` states the same baseline in fewer words:
+
+> For anything in the audio thread / hot DSP path (e.g. `processBlock`):
+> - Allocate in constructors or `prepareToPlay`, not while rendering audio
+> - Avoid dynamic allocations and container growth (`std::vector::push_back`, map insertion, string building)
+> - Prefer fixed-size storage (`std::array`, preallocated buffers, fixed-capacity queues)
+> - Keep operations deterministic and lock-free where possible
+
+This matches our rules. Tessera's version (this file) is more thorough — adds the audio-path scope definition, the alternatives table, the patterns-by-use-case section, and the violation-catching workflow. Keep using ours as the authoritative source; their formulation is here as a sanity check / introductory summary.

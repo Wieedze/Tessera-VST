@@ -14,13 +14,14 @@ Légende :
 ### Niveau 1 — Fondamentaux
 
 - [ ] Value / reference / pointer (`T`, `T&`, `T*`)
-- [ ] `const` correctness
+- [~] `const` correctness (vu : `const` sur méthode read, sens "ne modifie pas l'objet")
 - [ ] RAII et destructeurs automatiques
-- [ ] `std::array` vs `std::vector` — choix de container
-- [ ] Stack vs heap — où vit quoi
+- [x] `std::array` vs `std::vector` — choix de container (exo 3.2 : array, taille fixe à la compile)
+- [x] Stack vs heap — où vit quoi (array sur la pile, atomic membre = dans l'objet)
 - [ ] `auto` et déduction de type
 - [ ] `nullptr` vs `NULL` vs `0`
 - [ ] Headers vs implementation (`.h` / `.cpp`), include guards
+- [x] Namespaces et `::` (std::, ::-resolution, `using namespace` à éviter)
 
 ### Niveau 2 — Types et templates
 
@@ -34,7 +35,7 @@ Légende :
 
 ### Niveau 3 — Threading et atomics
 
-- [ ] `std::atomic<T>` — load/store/fetch_add
+- [~] `std::atomic<T>` — load/store/fetch_add (vu via exo 3.2 : load + store sur int counter)
 - [ ] Memory ordering (`relaxed`, `acquire`, `release`, `seq_cst`)
 - [ ] Pourquoi `std::mutex` est interdit dans `processBlock`
 - [ ] Lock-free SPSC FIFO (concept)
@@ -70,7 +71,7 @@ Tracking de [`exercises.md`](exercises.md).
 - [ ] 2.1 — `std::array` vs `std::vector`
 - [ ] 2.2 — `std::span` comme view
 - [ ] 3.1 — `std::atomic<int>` counter
-- [ ] 3.2 — Ring buffer minimaliste
+- [x] 3.2 — Ring buffer minimaliste (validé 2026-05-10, 6 étapes pas-à-pas)
 
 ---
 

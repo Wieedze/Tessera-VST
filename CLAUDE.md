@@ -1,6 +1,6 @@
 # Tessera — VST3 multi-FX glitch/granular plugin
 
-JUCE 8 / C++20 audio plugin, based on the Pamplejuce template. Full specs in `docs/`.
+JUCE 8 / C++23 audio plugin, based on the Pamplejuce template. Full specs in `docs/`. C++23 decision: see [docs/ADRs/0002-cpp23-language-version.md](docs/ADRs/0002-cpp23-language-version.md).
 
 ## Language
 
@@ -22,7 +22,7 @@ Details: [.claude/rules/rt-safety.md](.claude/rules/rt-safety.md)
 ## Method
 
 - **TDD light** — write the test before the implementation
-- **C++20** — concepts, ranges, `std::span`
+- **C++23** — concepts, ranges, `std::span`, `std::expected`, monadic `std::optional`. See [docs/ADRs/0002-cpp23-language-version.md](docs/ADRs/0002-cpp23-language-version.md).
 - **Public DSP API documented with Doxygen comments in English**
 - **Granular Git commits** — see [.claude/rules/git-style.md](.claude/rules/git-style.md)
 

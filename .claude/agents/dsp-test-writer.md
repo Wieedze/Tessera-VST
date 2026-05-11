@@ -68,6 +68,42 @@ TEST_CASE("<Module> :: round-trip identity", "[dsp][<module>]") {
 }
 ```
 
+## Pamplejuce specifics — must-knows
+
+- **The Pamplejuce-provided `tests/Catch2Main.cpp` ships a custom `main` that initializes `juce::ScopedJuceInitialiser_GUI`.** Do NOT replace it — it prevents leaks in tests that touch JUCE's message thread. Add your test cases in separate files (auto-globbed by `cmake/Tests.cmake`).
+- **`RUN_PAMPLEJUCE_TESTS=1`** is defined by CMake on the Tests target. Gate test-only fixture helpers or expose `private:` test peers with `#if RUN_PAMPLEJUCE_TESTS`.
+- **`CI=1`** is defined when the build runs in GitHub Actions. Use to skip slow tests or widen tolerances on CI machines.
+- **Extra parens for complex `CHECK` / `REQUIRE`** — Catch2's expression decomposition cannot parse `&&` / `||` directly:
+  ```cpp
+  CHECK((a == b && c < d));    // ✅ extra parens
+  CHECK(a == b && c < d);      // ❌ compilation error or surprise behavior
+  ```
+- **Float comparisons** — never `==`. Always:
+  ```cpp
+  REQUIRE(value == Approx(expected));
+  REQUIRE_THAT(value, WithinAbs(expected, 1e-6));
+  ```
+- **Single test run syntax** — Catch2 v3:
+  ```bash
+  ./Builds/Tests "[dsp][capturebuffer]"     # by tag
+  ./Builds/Tests "CaptureBuffer round-trip" # by name (substring)
+  ```
+
+## Running tests locally
+
+```bash
+# Cross-platform via ctest
+ctest --test-dir Builds --verbose --output-on-failure
+
+# Direct (faster — skips ctest wrapper)
+./Builds/Tests
+
+# Filtered
+./Builds/Tests "[dsp][capturebuffer]"
+```
+
+See `.claude/rules/build-and-test.md` for the full operational guide.
+
 ## Method
 
 When asked to write tests for a module:
