@@ -56,12 +56,18 @@ Architectural decisions are logged in [docs/ADRs/](docs/ADRs/) (one file per dec
 - `juce-reviewer` — JUCE / C++20 review
 - `ui-reviewer` — JUCE UI / LookAndFeel / OpenGL / DSP↔UI viz review
 - `doc-keeper` — keeps docs, ADRs, and public DSP headers in sync
-- `lessons-keeper` — updates [.claude/lessons.md](.claude/lessons.md) post-incident
-- `cpp-mentor` — explains C++ concepts as they appear, runs module checkpoints, maintains [docs/learning-notes.md](docs/learning-notes.md)
+- `lessons-keeper` — adds new entries in [.claude/lessons/](.claude/lessons/) post-incident
+- `cpp-mentor` — explains C++ concepts, runs module checkpoints, maintains [docs/learning/](docs/learning/)
 
 ## Learning mode
 
-Maxime is learning C++ through this project. Conversation defaults to **French**, code stays **English**. After each module is written, the `cpp-mentor` produces a short concept summary and a 3-5 question checkpoint quiz. Inline explanations are added to the chat and to `docs/learning-notes.md` for later cold review. Use React/TypeScript analogies when they fit naturally.
+Maxime is learning C++ through this project. Conversation defaults to **French**, code stays **English**. The learning workflow lives in [docs/learning/](docs/learning/):
+
+- [docs/learning/notes.md](docs/learning/notes.md) — concepts encountered, explained for a React/TS dev
+- [docs/learning/exercises.md](docs/learning/exercises.md) — graded exercises with hidden solutions
+- [docs/learning/progress.md](docs/learning/progress.md) — checklist of concepts, exercises, modules, checkpoints
+
+After each module, the `cpp-mentor` produces a short concept summary and a 3-5 question checkpoint quiz, and ticks `progress.md`.
 
 ## Skills
 
