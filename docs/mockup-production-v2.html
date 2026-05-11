@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Glitchwave — Production v2 (Granular Activity)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-void: #0A0B0F;
+  --bg-surface-1: #14161D;
+  --bg-surface-2: #1C1F28;
+  --bg-surface-3: #252834;
+  --bg-hover: #2F3340;
+  --border-subtle: #1F2230;
+  --border-default: #2F3340;
+  --border-strong: #3D4254;
+  --text-primary: #E8EAF0;
+  --text-secondary: #8B92A8;
+  --text-tertiary: #5A6075;
+  --text-disabled: #3D4254;
+  --signal-primary: #00D9C4;
+  --signal-active: #00FFD9;
+  --mod-purple: #B084EB;
+  --mod-purple-dim: #6B4F8F;
+  --loop-blue: #4DABF7;
+  --spawn-yellow: #FFE066;
+  --fx-stutter: #00D9C4;
+  --fx-reverser: #FF6B9D;
+  --fx-tapestop: #FFA94D;
+  --fx-filter: #FFE066;
+  --fx-bitcrusher: #FF5252;
+  --fx-gater: #51CF66;
+  --fx-pitch: #FF8FA3;
+  --fx-granular: #DDA0DD;
+  --fx-slicer: #4DABF7;
+  --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #050608;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.plugin-window {
+  width: 1100px;
+  height: 700px;
+  background: var(--bg-surface-1);
+  border-radius: 14px;
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+}
+
+/* HEADER */
+.header {
+  height: 48px;
+  background: var(--bg-void);
+  border-bottom: 1px solid var(--border-default);
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 16px;
+  flex-shrink: 0;
+}
+
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 13px; letter-spacing: 1.2px; }
+
+.logo-mark {
+  width: 18px; height: 18px; border-radius: 4px;
+  background: linear-gradient(135deg, var(--signal-primary), var(--mod-purple));
+  display: flex; align-items: center; justify-content: center;
+}
+.logo-mark::after {
+  content: ''; width: 8px; height: 8px;
+  background: var(--bg-void); border-radius: 1px;
+}
+
+.preset-bar {
+  flex: 1; max-width: 280px;
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  padding: 6px 12px; font-size: 12px;
+}
+.preset-name { flex: 1; font-family: var(--font-mono); color: var(--text-primary); font-size: 11px; }
+.preset-name .author { color: var(--text-tertiary); }
+
+.icon-btn {
+  width: 24px; height: 24px;
+  border: 1px solid transparent; background: transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 11px;
+  font-family: var(--font-mono);
+}
+.icon-btn:hover { background: var(--bg-surface-2); color: var(--text-primary); }
+
+.ab-group {
+  display: flex; background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 6px; overflow: hidden;
+}
+.ab-btn {
+  width: 28px; height: 24px; background: transparent; border: none;
+  color: var(--text-secondary);
+  font-family: var(--font-mono); font-size: 11px;
+  cursor: pointer; font-weight: 500;
+}
+.ab-btn.active { background: var(--bg-surface-3); color: var(--text-primary); }
+
+.tabs {
+  display: flex; background: var(--bg-surface-2);
+  border: 1px solid var(--border-default); border-radius: 6px;
+  overflow: hidden;
+  font-family: var(--font-mono); font-size: 10px; letter-spacing: 1.2px;
+}
+.tab {
+  padding: 6px 14px; background: transparent; border: none;
+  color: var(--text-tertiary); cursor: pointer;
+  text-transform: uppercase;
+  border-right: 1px solid var(--border-default);
+}
+.tab:last-child { border-right: none; }
+.tab.active { background: var(--bg-surface-3); color: var(--signal-primary); }
+
+/* BODY */
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1px;
+  background: var(--border-default);
+  overflow: hidden;
+}
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--bg-surface-1);
+  padding: 16px 14px;
+  display: flex; flex-direction: column; gap: 16px;
+  overflow-y: auto;
+}
+
+.section-label {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border-subtle);
+}
+
+.macros-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.macro-pad {
+  position: relative; aspect-ratio: 1;
+  background: var(--bg-void);
+  border: 1px solid var(--border-default);
+  border-radius: 6px; overflow: hidden;
+}
+.macro-pad::before {
+  content: ''; position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+  background-size: 33.33% 33.33%;
+  opacity: 0.6;
+}
+.macro-cursor {
+  position: absolute; width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--mod-purple);
+  box-shadow: 0 0 12px rgba(176, 132, 235, 0.6);
+  transform: translate(-50%, -50%);
+}
+.macro-label {
+  position: absolute; top: 4px; left: 6px;
+  font-size: 9px; font-family: var(--font-mono);
+  color: var(--text-secondary); letter-spacing: 0.5px;
+}
+
+.mod-sources { display: flex; flex-direction: column; gap: 4px; }
+.mod-source {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 8px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 5px; cursor: grab;
+}
+.mod-source:hover { border-color: var(--mod-purple-dim); background: var(--bg-surface-3); }
+.mod-source-icon {
+  width: 18px; height: 18px;
+  border-radius: 3px;
+  background: rgba(176, 132, 235, 0.12);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.mod-source-name { flex: 1; font-size: 11px; font-weight: 500; color: var(--text-primary); }
+.mod-source-rate { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); }
+
+.globals { display: flex; flex-direction: column; gap: 10px; }
+.global-row { display: flex; align-items: center; gap: 10px; }
+.global-label {
+  width: 32px; font-size: 10px; font-family: var(--font-mono);
+  color: var(--text-tertiary); text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.global-slider {
+  flex: 1; height: 4px; background: var(--bg-surface-3);
+  border-radius: 2px; position: relative;
+}
+.global-slider-fill {
+  position: absolute; top: 0; left: 0; height: 100%;
+  background: var(--signal-primary); border-radius: 2px;
+}
+.global-slider-thumb {
+  position: absolute; top: 50%; width: 12px; height: 12px;
+  background: var(--bg-surface-2); border: 1px solid var(--border-strong);
+  border-radius: 50%; transform: translate(-50%, -50%);
+}
+.global-value {
+  width: 36px; text-align: right;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* MAIN */
+.main {
+  background: var(--bg-surface-1);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* === ENGINE ACTIVITY PANEL (NEW) === */
+.engine-activity {
+  height: 168px;
+  background: var(--bg-void);
+  border-bottom: 1px solid var(--border-default);
+  display: flex; flex-direction: column;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.engine-activity-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(to bottom, rgba(221, 160, 221, 0.04), transparent);
+}
+
+.activity-mode-tag {
+  display: flex; align-items: center; gap: 8px;
+  color: var(--fx-granular);
+  font-weight: 500;
+}
+
+.activity-mode-tag::before {
+  content: ''; width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--fx-granular);
+  box-shadow: 0 0 8px var(--fx-granular);
+}
+
+.activity-stats {
+  display: flex; gap: 16px;
+  color: var(--text-tertiary);
+}
+.activity-stats strong {
+  color: var(--text-primary);
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.activity-canvas {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Loop region brackets at top */
+.loop-region {
+  position: absolute;
+  top: 6px;
+  left: 22%;
+  right: 38%;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.loop-bracket-left,
+.loop-bracket-right {
+  width: 8px; height: 12px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.loop-bracket-left::before,
+.loop-bracket-right::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: var(--loop-blue);
+}
+.loop-bracket-left::before { left: 0; }
+.loop-bracket-right::before { right: 0; }
+
+.loop-bracket-left::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  border: 4px solid transparent;
+  border-left-color: var(--loop-blue);
+  transform: translateY(-50%);
+}
+.loop-bracket-right::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  border: 4px solid transparent;
+  border-right-color: var(--loop-blue);
+  transform: translateY(-50%);
+}
+
+.loop-line {
+  flex: 1;
+  height: 1.5px;
+  background: var(--loop-blue);
+  opacity: 0.7;
+}
+
+/* Spread zone (purple gradient) */
+.spread-zone {
+  position: absolute;
+  top: 22px;
+  bottom: 22px;
+  left: 30%;
+  width: 22%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(176, 132, 235, 0.18) 30%,
+    rgba(176, 132, 235, 0.25) 50%,
+    rgba(176, 132, 235, 0.18) 70%,
+    transparent 100%
+  );
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Spawn cursor (yellow vertical line) */
+.spawn-cursor {
+  position: absolute;
+  top: 24px;
+  bottom: 24px;
+  left: 41%;
+  width: 1.5px;
+  background: var(--spawn-yellow);
+  box-shadow: 0 0 6px rgba(255, 224, 102, 0.5);
+  z-index: 3;
+  pointer-events: none;
+}
+
+.spawn-cursor::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid var(--spawn-yellow);
+}
+
+/* Write head (bright cyan) */
+.write-head {
+  position: absolute;
+  top: 22px;
+  bottom: 22px;
+  left: 78%;
+  width: 2px;
+  background: var(--signal-active);
+  box-shadow: 0 0 12px var(--signal-active);
+  z-index: 5;
+  pointer-events: none;
+  animation: writeFlow 4s linear infinite;
+}
+
+.write-head::after {
+  content: 'WRITE';
+  position: absolute;
+  top: -2px;
+  left: 6px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: 1.2px;
+  color: var(--signal-active);
+  background: var(--bg-void);
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+
+@keyframes writeFlow {
+  0% { left: 0%; }
+  100% { left: 100%; }
+}
+
+/* Grain heads (multiple white verticals) */
+.grain-head {
+  position: absolute;
+  top: 30px;
+  bottom: 28px;
+  width: 1px;
+  background: var(--text-primary);
+  opacity: 0.7;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.grain-head::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  width: 4px;
+  height: 1px;
+  background: var(--text-primary);
+  transform: translateX(-50%);
+}
+
+.grain-head[data-pitch="up"]::after { top: 12%; }
+.grain-head[data-pitch="mid"]::after { top: 50%; }
+.grain-head[data-pitch="down"]::after { top: 75%; }
+
+.grain-head[data-reverse="true"]::before {
+  content: '◀';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 6px;
+  color: var(--text-tertiary);
+}
+
+.grain-head.fading {
+  opacity: 0.3;
+}
+
+/* Waveform SVG */
+.waveform-svg {
+  position: absolute;
+  inset: 22px 0;
+  width: 100%;
+  height: calc(100% - 44px);
+  z-index: 0;
+}
+
+/* Bottom labels */
+.activity-footer {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 4px 14px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.6px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-void);
+}
+
+/* === STEP SEQUENCER === */
+.sequencer-section {
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.sequencer-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.sequencer-title {
+  font-size: 9px; font-weight: 500;
+  letter-spacing: 1.4px; text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.sequencer-controls {
+  display: flex; gap: 16px; align-items: center;
+}
+
+.seq-control {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; font-family: var(--font-mono);
+  color: var(--text-tertiary);
+}
+
+.seq-control-value { color: var(--text-primary); }
+
+.steps-row {
+  display: grid; grid-template-columns: repeat(16, 1fr);
+  gap: 4px;
+}
+
+.step {
+  aspect-ratio: 1;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  position: relative; cursor: pointer;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 2px;
+}
+
+.step:hover { border-color: var(--border-strong); }
+
+.step-number {
+  position: absolute; top: 4px; left: 5px;
+  font-family: var(--font-mono); font-size: 8px;
+  color: var(--text-tertiary);
+}
+
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--text-disabled);
+  margin-top: 4px;
+}
+
+.step-label {
+  font-family: var(--font-mono); font-size: 8px;
+  color: var(--text-tertiary); letter-spacing: 0.4px;
+}
+
+.step.on-stutter { background: rgba(0, 217, 196, 0.10); border-color: var(--fx-stutter); }
+.step.on-stutter .step-dot { background: var(--fx-stutter); box-shadow: 0 0 6px rgba(0,217,196,0.5); }
+.step.on-stutter .step-label { color: var(--fx-stutter); }
+
+.step.on-reverser { background: rgba(255, 107, 157, 0.10); border-color: var(--fx-reverser); }
+.step.on-reverser .step-dot { background: var(--fx-reverser); box-shadow: 0 0 6px rgba(255,107,157,0.5); }
+.step.on-reverser .step-label { color: var(--fx-reverser); }
+
+.step.on-tapestop { background: rgba(255, 169, 77, 0.10); border-color: var(--fx-tapestop); }
+.step.on-tapestop .step-dot { background: var(--fx-tapestop); box-shadow: 0 0 6px rgba(255,169,77,0.5); }
+.step.on-tapestop .step-label { color: var(--fx-tapestop); }
+
+.step.on-filter { background: rgba(255, 224, 102, 0.10); border-color: var(--fx-filter); }
+.step.on-filter .step-dot { background: var(--fx-filter); box-shadow: 0 0 6px rgba(255,224,102,0.5); }
+.step.on-filter .step-label { color: var(--fx-filter); }
+
+.step.on-granular { background: rgba(221, 160, 221, 0.10); border-color: var(--fx-granular); }
+.step.on-granular .step-dot { background: var(--fx-granular); box-shadow: 0 0 6px rgba(221,160,221,0.5); }
+.step.on-granular .step-label { color: var(--fx-granular); }
+
+.step.on-slicer { background: rgba(77, 171, 247, 0.10); border-color: var(--fx-slicer); }
+.step.on-slicer .step-dot { background: var(--fx-slicer); box-shadow: 0 0 6px rgba(77,171,247,0.5); }
+.step.on-slicer .step-label { color: var(--fx-slicer); }
+
+.step.on-bitcrusher { background: rgba(255, 82, 82, 0.10); border-color: var(--fx-bitcrusher); }
+.step.on-bitcrusher .step-dot { background: var(--fx-bitcrusher); box-shadow: 0 0 6px rgba(255,82,82,0.5); }
+.step.on-bitcrusher .step-label { color: var(--fx-bitcrusher); }
+
+.step.playing {
+  outline: 2px solid var(--signal-active);
+  outline-offset: -1px;
+  animation: pulse 800ms ease-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { outline-color: var(--signal-active); }
+  50% { outline-color: rgba(0, 255, 217, 0.4); }
+}
+
+/* === BOTTOM === */
+.bottom-panels {
+  flex: 1;
+  display: grid; grid-template-columns: 3fr 2fr;
+  gap: 1px; background: var(--border-default);
+  overflow: hidden;
+}
+
+.fx-panel, .mod-panel {
+  background: var(--bg-surface-1);
+  padding: 14px 16px;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+.fx-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 14px;
+}
+
+.fx-color-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--fx-granular);
+  box-shadow: 0 0 10px rgba(221, 160, 221, 0.6);
+}
+
+.fx-name {
+  font-size: 13px; font-weight: 500;
+  letter-spacing: 0.3px; color: var(--text-primary);
+}
+
+.fx-meta {
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+.fx-edit-btn {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 10px;
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 4px 10px; cursor: pointer;
+  letter-spacing: 0.4px;
+}
+
+.knobs-grid {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.knob-cell {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+}
+
+.knob-svg-wrapper { position: relative; width: 52px; height: 52px; }
+.knob-svg-wrapper svg { display: block; }
+
+.knob-mod-halo {
+  position: absolute; inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--mod-purple);
+  opacity: 0.5; pointer-events: none;
+  animation: modPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes modPulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.06); }
+}
+
+.knob-label { font-size: 10px; letter-spacing: 0.3px; color: var(--text-secondary); }
+.knob-value { font-family: var(--font-mono); font-size: 9px; color: var(--text-tertiary); }
+
+.mod-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mod-routings { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+
+.routing-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 5px;
+  font-size: 10px; font-family: var(--font-mono);
+}
+
+.routing-source { color: var(--mod-purple); font-weight: 500; width: 56px; }
+.routing-arrow { color: var(--text-tertiary); }
+.routing-dest { color: var(--text-primary); flex: 1; }
+.routing-depth.positive { color: var(--signal-primary); }
+.routing-depth.negative { color: var(--fx-pitch); }
+
+.add-routing {
+  margin-top: auto;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px dashed var(--border-default);
+  border-radius: 5px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono); font-size: 9px;
+  cursor: pointer; text-align: center;
+}
+
+.caption {
+  position: fixed;
+  bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono); font-size: 11px;
+  color: #555; letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+
+<div class="plugin-window">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-mark"></div>
+      GLITCHWAVE
+    </div>
+    <div class="preset-bar">
+      <span class="preset-name">FRACTURED.CHORDS_<span class="author">@maxime</span></span>
+      <button class="icon-btn">▾</button>
+    </div>
+    <button class="icon-btn">↶</button>
+    <button class="icon-btn">↷</button>
+    <div class="ab-group">
+      <button class="ab-btn active">A</button>
+      <button class="ab-btn">B</button>
+      <button class="ab-btn">M</button>
+    </div>
+    <div class="tabs">
+      <button class="tab active">PROD</button>
+      <button class="tab">LIVE</button>
+      <button class="tab">MATRIX</button>
+      <button class="tab">PRESETS</button>
+    </div>
+    <button class="icon-btn">⚙</button>
+  </div>
+
+  <div class="body">
+
+    <!-- SIDEBAR (identique à v1) -->
+    <div class="sidebar">
+      <div>
+        <div class="section-label">Macros</div>
+        <div class="macros-grid">
+          <div class="macro-pad"><span class="macro-label">M1</span><div class="macro-cursor" style="left: 65%; top: 30%"></div></div>
+          <div class="macro-pad"><span class="macro-label">M2</span><div class="macro-cursor" style="left: 25%; top: 70%"></div></div>
+          <div class="macro-pad"><span class="macro-label">M3</span><div class="macro-cursor" style="left: 50%; top: 50%"></div></div>
+          <div class="macro-pad"><span class="macro-label">M4</span><div class="macro-cursor" style="left: 80%; top: 80%"></div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Mod sources</div>
+        <div class="mod-sources">
+          <div class="mod-source">
+            <div class="mod-source-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 5 Q 2.5 0, 5 5 T 10 5" fill="none" stroke="#B084EB" stroke-width="1.2"/></svg></div>
+            <span class="mod-source-name">LFO 1</span>
+            <span class="mod-source-rate">1/4</span>
+          </div>
+          <div class="mod-source">
+            <div class="mod-source-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 7 L 5 3 L 5 7 L 10 3" fill="none" stroke="#B084EB" stroke-width="1.2"/></svg></div>
+            <span class="mod-source-name">LFO 2</span>
+            <span class="mod-source-rate">1/8.</span>
+          </div>
+          <div class="mod-source">
+            <div class="mod-source-icon"><svg width="10" height="10" viewBox="0 0 10 10"><rect x="1" y="2" width="2" height="3" fill="#B084EB"/><rect x="4" y="5" width="2" height="3" fill="#B084EB"/><rect x="7" y="3" width="2" height="4" fill="#B084EB"/></svg></div>
+            <span class="mod-source-name">S&amp;H</span>
+            <span class="mod-source-rate">1/16</span>
+          </div>
+          <div class="mod-source">
+            <div class="mod-source-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 8 C 2 4, 4 9, 5 5 S 8 7, 9 4" fill="none" stroke="#B084EB" stroke-width="1.2"/></svg></div>
+            <span class="mod-source-name">CHAOS A</span>
+            <span class="mod-source-rate">·5</span>
+          </div>
+          <div class="mod-source">
+            <div class="mod-source-icon"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M0 8 L 2 2 L 4 5 L 6 4 L 10 8" fill="none" stroke="#B084EB" stroke-width="1.2"/></svg></div>
+            <span class="mod-source-name">Env Foll.</span>
+            <span class="mod-source-rate">in</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Globals</div>
+        <div class="globals">
+          <div class="global-row">
+            <span class="global-label">in</span>
+            <div class="global-slider">
+              <div class="global-slider-fill" style="width: 75%"></div>
+              <div class="global-slider-thumb" style="left: 75%"></div>
+            </div>
+            <span class="global-value">+0.0dB</span>
+          </div>
+          <div class="global-row">
+            <span class="global-label">out</span>
+            <div class="global-slider">
+              <div class="global-slider-fill" style="width: 60%"></div>
+              <div class="global-slider-thumb" style="left: 60%"></div>
+            </div>
+            <span class="global-value">-3.2dB</span>
+          </div>
+          <div class="global-row">
+            <span class="global-label">d/w</span>
+            <div class="global-slider">
+              <div class="global-slider-fill" style="width: 88%"></div>
+              <div class="global-slider-thumb" style="left: 88%"></div>
+            </div>
+            <span class="global-value">88%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- ENGINE ACTIVITY (NEW) -->
+      <div class="engine-activity">
+        <div class="engine-activity-header">
+          <span class="activity-mode-tag">GRANULAR LIVE · CAPTURE 4 BARS</span>
+          <div class="activity-stats">
+            <span>position <strong>0.42</strong></span>
+            <span>spread <strong>22%</strong></span>
+            <span>density <strong>12.4/s</strong></span>
+            <span>voices <strong>18</strong>/32</span>
+            <span>bpm <strong>128.0</strong></span>
+          </div>
+        </div>
+
+        <div class="activity-canvas">
+
+          <!-- Loop region brackets -->
+          <div class="loop-region">
+            <div class="loop-bracket-left"></div>
+            <div class="loop-line"></div>
+            <div class="loop-bracket-right"></div>
+          </div>
+
+          <!-- Spread zone -->
+          <div class="spread-zone"></div>
+
+          <!-- Waveform -->
+          <svg class="waveform-svg" viewBox="0 0 1000 100" preserveAspectRatio="none">
+            <line x1="0" y1="50" x2="1000" y2="50" stroke="#1F2230" stroke-width="0.5"/>
+            <!-- Top half mirror -->
+            <path d="M 0 50 L 8 38 L 14 45 L 20 30 L 28 42 L 34 25 L 40 38 L 48 22 L 54 35 L 62 18 L 68 32 L 76 12 L 82 28 L 90 8 L 96 24 L 104 5 L 110 22 L 118 4 L 124 20 L 132 6 L 140 25 L 148 12 L 156 30 L 164 18 L 172 35 L 180 25 L 188 40 L 196 32 L 204 45 L 212 38 L 220 48 L 228 42 L 240 49 L 252 45 L 264 48 L 276 46 L 288 49 L 300 47 L 314 48 L 328 47 L 342 49 L 356 47 L 370 48 L 384 48 L 398 49 L 412 47 L 426 48 L 440 47 L 454 49 L 468 47 L 480 48 L 494 47 L 508 49 L 522 46 L 538 48 L 554 45 L 568 47 L 582 43 L 598 45 L 614 40 L 628 43 L 644 38 L 658 41 L 674 35 L 688 38 L 704 32 L 718 36 L 734 30 L 748 34 L 764 28 L 778 32 L 794 26 L 808 30 L 824 24 L 838 28 L 854 22 L 868 26 L 884 20 L 898 24 L 912 18 L 924 22 L 936 16 L 948 20 L 960 18 L 970 22 L 980 25 L 990 30 L 1000 50"
+                  fill="rgba(0, 217, 196, 0.4)" stroke="rgba(0, 217, 196, 0.7)" stroke-width="0.8"/>
+            <!-- Bottom mirror -->
+            <path d="M 0 50 L 8 62 L 14 55 L 20 70 L 28 58 L 34 75 L 40 62 L 48 78 L 54 65 L 62 82 L 68 68 L 76 88 L 82 72 L 90 92 L 96 76 L 104 95 L 110 78 L 118 96 L 124 80 L 132 94 L 140 75 L 148 88 L 156 70 L 164 82 L 172 65 L 180 75 L 188 60 L 196 68 L 204 55 L 212 62 L 220 52 L 228 58 L 240 51 L 252 55 L 264 52 L 276 54 L 288 51 L 300 53 L 314 52 L 328 53 L 342 51 L 356 53 L 370 52 L 384 52 L 398 51 L 412 53 L 426 52 L 440 53 L 454 51 L 468 53 L 480 52 L 494 53 L 508 51 L 522 54 L 538 52 L 554 55 L 568 53 L 582 57 L 598 55 L 614 60 L 628 57 L 644 62 L 658 59 L 674 65 L 688 62 L 704 68 L 718 64 L 734 70 L 748 66 L 764 72 L 778 68 L 794 74 L 808 70 L 824 76 L 838 72 L 854 78 L 868 74 L 884 80 L 898 76 L 912 82 L 924 78 L 936 84 L 948 80 L 960 82 L 970 78 L 980 75 L 990 70 L 1000 50"
+                  fill="rgba(0, 217, 196, 0.3)" stroke="rgba(0, 217, 196, 0.5)" stroke-width="0.8"/>
+          </svg>
+
+          <!-- Spawn cursor (yellow line in center of spread) -->
+          <div class="spawn-cursor"></div>
+
+          <!-- Multiple grain heads (within spread zone) -->
+          <div class="grain-head" data-pitch="mid" style="left: 31%"></div>
+          <div class="grain-head" data-pitch="up" style="left: 33.5%"></div>
+          <div class="grain-head fading" data-pitch="mid" style="left: 35%"></div>
+          <div class="grain-head" data-pitch="down" data-reverse="true" style="left: 36.5%"></div>
+          <div class="grain-head" data-pitch="up" style="left: 38%"></div>
+          <div class="grain-head" data-pitch="mid" style="left: 39.5%"></div>
+          <div class="grain-head fading" data-pitch="up" style="left: 40.5%"></div>
+          <div class="grain-head" data-pitch="down" style="left: 42%"></div>
+          <div class="grain-head" data-pitch="mid" data-reverse="true" style="left: 43.5%"></div>
+          <div class="grain-head" data-pitch="up" style="left: 45%"></div>
+          <div class="grain-head fading" data-pitch="mid" style="left: 46.5%"></div>
+          <div class="grain-head" data-pitch="down" style="left: 48%"></div>
+          <div class="grain-head" data-pitch="up" style="left: 49.5%"></div>
+          <div class="grain-head fading" data-pitch="mid" style="left: 51%"></div>
+
+          <!-- Write head (cyan, animated) -->
+          <div class="write-head"></div>
+
+        </div>
+
+        <div class="activity-footer">
+          <span>0:00.000</span>
+          <span style="color: var(--mod-purple)">↳ position modulated by LFO 2 (+22%)</span>
+          <span>2:00.000 · 4 bars</span>
+        </div>
+      </div>
+
+      <!-- SEQUENCER -->
+      <div class="sequencer-section">
+        <div class="sequencer-header">
+          <span class="sequencer-title">Step sequencer</span>
+          <div class="sequencer-controls">
+            <span class="seq-control">swing <span class="seq-control-value">14%</span></span>
+            <span class="seq-control">length <span class="seq-control-value">16</span></span>
+            <span class="seq-control">div <span class="seq-control-value">1/16</span></span>
+          </div>
+        </div>
+        <div class="steps-row">
+          <div class="step on-stutter"><span class="step-number">01</span><div class="step-dot"></div><span class="step-label">STT</span></div>
+          <div class="step"><span class="step-number">02</span><div class="step-dot"></div></div>
+          <div class="step on-filter"><span class="step-number">03</span><div class="step-dot"></div><span class="step-label">FLT</span></div>
+          <div class="step on-stutter"><span class="step-number">04</span><div class="step-dot"></div><span class="step-label">STT</span></div>
+          <div class="step on-reverser"><span class="step-number">05</span><div class="step-dot"></div><span class="step-label">REV</span></div>
+          <div class="step"><span class="step-number">06</span><div class="step-dot"></div></div>
+          <div class="step on-granular playing"><span class="step-number">07</span><div class="step-dot"></div><span class="step-label">GRN</span></div>
+          <div class="step on-tapestop"><span class="step-number">08</span><div class="step-dot"></div><span class="step-label">TPS</span></div>
+          <div class="step on-stutter"><span class="step-number">09</span><div class="step-dot"></div><span class="step-label">STT</span></div>
+          <div class="step on-bitcrusher"><span class="step-number">10</span><div class="step-dot"></div><span class="step-label">BIT</span></div>
+          <div class="step"><span class="step-number">11</span><div class="step-dot"></div></div>
+          <div class="step on-slicer"><span class="step-number">12</span><div class="step-dot"></div><span class="step-label">SLC</span></div>
+          <div class="step on-granular"><span class="step-number">13</span><div class="step-dot"></div><span class="step-label">GRN</span></div>
+          <div class="step on-reverser"><span class="step-number">14</span><div class="step-dot"></div><span class="step-label">REV</span></div>
+          <div class="step on-filter"><span class="step-number">15</span><div class="step-dot"></div><span class="step-label">FLT</span></div>
+          <div class="step on-tapestop"><span class="step-number">16</span><div class="step-dot"></div><span class="step-label">TPS</span></div>
+        </div>
+      </div>
+
+      <!-- BOTTOM (FX panel + mod routings) -->
+      <div class="bottom-panels">
+        <div class="fx-panel">
+          <div class="fx-header">
+            <span class="fx-color-dot"></span>
+            <span class="fx-name">Granular cloud</span>
+            <span class="fx-meta">step 07 · v1</span>
+            <button class="fx-edit-btn">EDIT FX</button>
+          </div>
+
+          <div class="knobs-grid">
+            <div class="knob-cell">
+              <div class="knob-svg-wrapper">
+                <svg width="52" height="52" viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#252834" stroke-width="3" stroke-dasharray="94 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#DDA0DD" stroke-width="3" stroke-dasharray="60 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="14" fill="#1C1F28" stroke="#2F3340" stroke-width="1"/>
+                  <line x1="25" y1="14" x2="25" y2="20" stroke="#E8EAF0" stroke-width="1.5" stroke-linecap="round" transform="rotate(36 25 25)"/>
+                </svg>
+              </div>
+              <span class="knob-label">size</span>
+              <span class="knob-value">85ms</span>
+            </div>
+
+            <div class="knob-cell">
+              <div class="knob-svg-wrapper">
+                <div class="knob-mod-halo"></div>
+                <svg width="52" height="52" viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#252834" stroke-width="3" stroke-dasharray="94 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#DDA0DD" stroke-width="3" stroke-dasharray="78 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="14" fill="#1C1F28" stroke="#2F3340" stroke-width="1"/>
+                  <line x1="25" y1="14" x2="25" y2="20" stroke="#E8EAF0" stroke-width="1.5" stroke-linecap="round" transform="rotate(85 25 25)"/>
+                </svg>
+              </div>
+              <span class="knob-label">density</span>
+              <span class="knob-value">12.4/s</span>
+            </div>
+
+            <div class="knob-cell">
+              <div class="knob-svg-wrapper">
+                <div class="knob-mod-halo"></div>
+                <svg width="52" height="52" viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#252834" stroke-width="3" stroke-dasharray="94 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#DDA0DD" stroke-width="3" stroke-dasharray="50 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="14" fill="#1C1F28" stroke="#2F3340" stroke-width="1"/>
+                  <line x1="25" y1="14" x2="25" y2="20" stroke="#E8EAF0" stroke-width="1.5" stroke-linecap="round" transform="rotate(8 25 25)"/>
+                </svg>
+              </div>
+              <span class="knob-label">position</span>
+              <span class="knob-value">0.42</span>
+            </div>
+
+            <div class="knob-cell">
+              <div class="knob-svg-wrapper">
+                <svg width="52" height="52" viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#252834" stroke-width="3" stroke-dasharray="94 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#DDA0DD" stroke-width="3" stroke-dasharray="42 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="14" fill="#1C1F28" stroke="#2F3340" stroke-width="1"/>
+                  <line x1="25" y1="14" x2="25" y2="20" stroke="#E8EAF0" stroke-width="1.5" stroke-linecap="round" transform="rotate(-15 25 25)"/>
+                </svg>
+              </div>
+              <span class="knob-label">pitch</span>
+              <span class="knob-value">+3.2 st</span>
+            </div>
+
+            <div class="knob-cell">
+              <div class="knob-svg-wrapper">
+                <svg width="52" height="52" viewBox="0 0 50 50">
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#252834" stroke-width="3" stroke-dasharray="94 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="20" fill="none" stroke="#DDA0DD" stroke-width="3" stroke-dasharray="22 220" stroke-linecap="round" transform="rotate(135 25 25)"/>
+                  <circle cx="25" cy="25" r="14" fill="#1C1F28" stroke="#2F3340" stroke-width="1"/>
+                  <line x1="25" y1="14" x2="25" y2="20" stroke="#E8EAF0" stroke-width="1.5" stroke-linecap="round" transform="rotate(-72 25 25)"/>
+                </svg>
+              </div>
+              <span class="knob-label">jitter</span>
+              <span class="knob-value">22%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mod-panel">
+          <div class="mod-panel-header">
+            <span class="sequencer-title" style="color: var(--mod-purple)">Modulation routings</span>
+            <span class="seq-control">5 active</span>
+          </div>
+          <div class="mod-routings">
+            <div class="routing-row">
+              <span class="routing-source">LFO 1</span>
+              <span class="routing-arrow">→</span>
+              <span class="routing-dest">filter.cutoff</span>
+              <span class="routing-depth positive">+45%</span>
+            </div>
+            <div class="routing-row">
+              <span class="routing-source">LFO 2</span>
+              <span class="routing-arrow">→</span>
+              <span class="routing-dest">grain.position</span>
+              <span class="routing-depth positive">+22%</span>
+            </div>
+            <div class="routing-row">
+              <span class="routing-source">ENV F</span>
+              <span class="routing-arrow">→</span>
+              <span class="routing-dest">grain.density</span>
+              <span class="routing-depth positive">+68%</span>
+            </div>
+            <div class="routing-row">
+              <span class="routing-source">CHAOS A</span>
+              <span class="routing-arrow">→</span>
+              <span class="routing-dest">stutter.rate</span>
+              <span class="routing-depth positive">+40%</span>
+            </div>
+            <div class="routing-row">
+              <span class="routing-source">M1</span>
+              <span class="routing-arrow">→</span>
+              <span class="routing-dest">grain.pitch</span>
+              <span class="routing-depth positive">+100%</span>
+            </div>
+          </div>
+          <button class="add-routing">+ ADD ROUTING — go to MATRIX tab</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="caption">GLITCHWAVE / PRODUCTION TAB v0.2 / GRANULAR ACTIVITY</div>
+
+</body>
+</html>

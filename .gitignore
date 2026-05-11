@@ -1,0 +1,107 @@
+# Build outputs
+build/
+build-*/
+cmake-build-*/
+out/
+Builds/
+JuceLibraryCode/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# Compiled binaries / objects
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.exp
+*.ilk
+*.pdb
+*.idb
+*.gch
+*.pch
+
+# Plugin bundles
+*.vst3/
+*.component/
+*.aaxplugin/
+*.clap/
+*.app/
+*.dSYM/
+
+# Code coverage
+*.gcno
+*.gcda
+*.gcov
+coverage/
+*.profraw
+*.profdata
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cache/
+.ccls-cache/
+.clangd/
+compile_flags.txt
+
+# Visual Studio
+.vs/
+*.vcxproj.user
+*.suo
+*.user
+
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+
+# macOS / Windows / Linux junk
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Pamplejuce / JUCE caches
+.pamplejuce/
+JUCE/
+modules/JUCE/
+
+# Test outputs
+Testing/Temporary/
+test-results/
+*.log
+
+# Local-only Claude settings (keep .claude/settings.json shared, ignore local overrides)
+.claude/settings.local.json
+.claude/cache/
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# Node (in case skill tooling adds artifacts)
+node_modules/
+package-lock.json

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Glitchwave — Live Tab Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-void: #0A0B0F;
+  --bg-surface-1: #14161D;
+  --bg-surface-2: #1C1F28;
+  --bg-surface-3: #252834;
+  --bg-hover: #2F3340;
+  --border-subtle: #1F2230;
+  --border-default: #2F3340;
+  --border-strong: #3D4254;
+  --text-primary: #E8EAF0;
+  --text-secondary: #8B92A8;
+  --text-tertiary: #5A6075;
+  --signal-primary: #00D9C4;
+  --signal-active: #00FFD9;
+  --mod-purple: #B084EB;
+  --fx-stutter: #00D9C4;
+  --fx-reverser: #FF6B9D;
+  --fx-tapestop: #FFA94D;
+  --fx-filter: #FFE066;
+  --fx-bitcrusher: #FF5252;
+  --fx-gater: #51CF66;
+  --fx-pitch: #FF8FA3;
+  --fx-granular: #DDA0DD;
+  --fx-slicer: #4DABF7;
+  --font-sans: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #050608;
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+}
+
+.plugin-window {
+  width: 1100px;
+  height: 700px;
+  background: var(--bg-surface-1);
+  border-radius: 14px;
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6);
+}
+
+/* HEADER */
+.header {
+  height: 48px;
+  background: var(--bg-void);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 1.2px;
+}
+
+.logo-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--signal-primary), var(--mod-purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-mark::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: var(--bg-void);
+  border-radius: 1px;
+}
+
+.preset-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  padding: 4px 10px;
+  border-radius: 5px;
+}
+
+.tabs {
+  margin-left: auto;
+  display: flex;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+}
+
+.tab {
+  padding: 6px 14px;
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  text-transform: uppercase;
+  border-right: 1px solid var(--border-default);
+}
+
+.tab:last-child { border-right: none; }
+.tab.active {
+  background: var(--bg-surface-3);
+  color: var(--mod-purple);
+}
+
+/* MAIN BODY */
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 40px;
+  gap: 28px;
+  overflow: hidden;
+}
+
+/* MACROS BIG */
+.big-macros {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.big-macro {
+  position: relative;
+  aspect-ratio: 1;
+  max-height: 280px;
+  background: var(--bg-void);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.big-macro::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--border-subtle) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border-subtle) 1px, transparent 1px);
+  background-size: 25% 25%;
+  opacity: 0.6;
+}
+
+.big-macro-label {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.big-macro-name {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.4px;
+}
+
+.big-macro-coords {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-tertiary);
+  letter-spacing: 0.4px;
+}
+
+.big-macro-trail {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mod-purple);
+  opacity: 0.25;
+  transform: translate(-50%, -50%);
+  filter: blur(2px);
+}
+
+.big-macro-cursor {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--mod-purple);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.15),
+    0 0 24px rgba(176, 132, 235, 0.7);
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.big-macro-cursor::after {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* TRIGGER PADS */
+.trigger-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.trigger-row-label {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.trigger-pads {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.trigger-pad {
+  height: 60px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 150ms;
+  position: relative;
+}
+
+.trigger-pad:hover { border-color: var(--border-strong); }
+
+.trigger-pad.active {
+  background: rgba(0, 217, 196, 0.08);
+  border-color: var(--fx-stutter);
+  box-shadow: inset 0 0 0 1px rgba(0, 217, 196, 0.3);
+}
+
+.trigger-pad.active::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal-active);
+  box-shadow: 0 0 8px var(--signal-active);
+  animation: blink 1.2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.trigger-pad-letter {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 1px;
+}
+
+.trigger-pad.active .trigger-pad-letter { color: var(--fx-stutter); }
+
+.trigger-pad-name {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* BOTTOM BAR */
+.bottom-bar {
+  margin-top: auto;
+  background: var(--bg-void);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  flex-shrink: 0;
+}
+
+.step-indicator {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step-indicator-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  width: 36px;
+}
+
+.step-dots {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 4px;
+}
+
+.step-dot-big {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--bg-surface-3);
+}
+
+.step-dot-big.on { background: var(--text-tertiary); }
+
+.step-dot-big.active {
+  background: var(--signal-active);
+  box-shadow: 0 0 12px var(--signal-active);
+}
+
+.bpm-display {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+  border-left: 1px solid var(--border-default);
+  padding-left: 28px;
+}
+
+.bpm-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.bpm-value {
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* SCENE MORPH */
+.scene-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 1px solid var(--border-default);
+  padding-left: 28px;
+  min-width: 200px;
+}
+
+.scene-label {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-tertiary);
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+}
+
+.scene-track {
+  height: 8px;
+  background: var(--bg-surface-3);
+  border-radius: 4px;
+  position: relative;
+  overflow: visible;
+}
+
+.scene-track::before {
+  content: 'A';
+  position: absolute;
+  left: -14px;
+  top: -2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--signal-primary);
+  font-weight: 500;
+}
+
+.scene-track::after {
+  content: 'B';
+  position: absolute;
+  right: -14px;
+  top: -2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--mod-purple);
+  font-weight: 500;
+}
+
+.scene-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--signal-primary), var(--mod-purple));
+  width: 35%;
+}
+
+.scene-thumb {
+  position: absolute;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg-surface-1);
+  border: 2px solid var(--text-primary);
+  transform: translate(-50%, -50%);
+}
+
+/* DRY/WET BAR */
+.dw-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 1px solid var(--border-default);
+  padding-left: 28px;
+  min-width: 160px;
+}
+
+.dw-track {
+  height: 8px;
+  background: var(--bg-surface-3);
+  border-radius: 4px;
+  position: relative;
+}
+
+.dw-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--signal-primary);
+  border-radius: 4px;
+  width: 88%;
+}
+
+.caption {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #555;
+  letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+
+<div class="plugin-window">
+
+  <div class="header">
+    <div class="logo">
+      <div class="logo-mark"></div>
+      GLITCHWAVE
+    </div>
+    <div class="preset-badge">FRACTURED.CHORDS</div>
+    <div class="tabs">
+      <button class="tab">PROD</button>
+      <button class="tab active">LIVE</button>
+      <button class="tab">PRESETS</button>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <!-- BIG MACROS -->
+    <div class="big-macros">
+      <div class="big-macro">
+        <span class="big-macro-label">M1</span>
+        <span class="big-macro-name">Texture</span>
+        <div class="big-macro-trail" style="left: 30%; top: 60%; opacity: 0.1"></div>
+        <div class="big-macro-trail" style="left: 40%; top: 55%; opacity: 0.15"></div>
+        <div class="big-macro-trail" style="left: 50%; top: 48%; opacity: 0.2"></div>
+        <div class="big-macro-cursor" style="left: 65%; top: 35%"></div>
+        <span class="big-macro-coords">x 0.65 y 0.35</span>
+      </div>
+
+      <div class="big-macro">
+        <span class="big-macro-label">M2</span>
+        <span class="big-macro-name">Chaos</span>
+        <div class="big-macro-trail" style="left: 60%; top: 30%; opacity: 0.1"></div>
+        <div class="big-macro-trail" style="left: 45%; top: 50%; opacity: 0.15"></div>
+        <div class="big-macro-trail" style="left: 32%; top: 65%; opacity: 0.2"></div>
+        <div class="big-macro-cursor" style="left: 22%; top: 78%"></div>
+        <span class="big-macro-coords">x 0.22 y 0.78</span>
+      </div>
+
+      <div class="big-macro">
+        <span class="big-macro-label">M3</span>
+        <span class="big-macro-name">Space</span>
+        <div class="big-macro-trail" style="left: 80%; top: 80%; opacity: 0.1"></div>
+        <div class="big-macro-trail" style="left: 70%; top: 70%; opacity: 0.15"></div>
+        <div class="big-macro-trail" style="left: 60%; top: 60%; opacity: 0.2"></div>
+        <div class="big-macro-cursor" style="left: 50%; top: 50%"></div>
+        <span class="big-macro-coords">x 0.50 y 0.50</span>
+      </div>
+    </div>
+
+    <!-- TRIGGER PADS -->
+    <div class="trigger-row">
+      <span class="trigger-row-label">Patterns</span>
+      <div class="trigger-pads">
+        <div class="trigger-pad active">
+          <span class="trigger-pad-letter">A</span>
+          <span class="trigger-pad-name">main groove</span>
+        </div>
+        <div class="trigger-pad">
+          <span class="trigger-pad-letter">B</span>
+          <span class="trigger-pad-name">build up</span>
+        </div>
+        <div class="trigger-pad">
+          <span class="trigger-pad-letter">C</span>
+          <span class="trigger-pad-name">fill</span>
+        </div>
+        <div class="trigger-pad">
+          <span class="trigger-pad-letter">D</span>
+          <span class="trigger-pad-name">break</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM BAR -->
+    <div class="bottom-bar">
+
+      <div class="step-indicator">
+        <span class="step-indicator-label">step</span>
+        <div class="step-dots">
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big active"></div>
+          <div class="step-dot-big"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+          <div class="step-dot-big on"></div>
+        </div>
+      </div>
+
+      <div class="bpm-display">
+        <span class="bpm-label">tempo · sync</span>
+        <span class="bpm-value">128.0</span>
+      </div>
+
+      <div class="scene-block">
+        <span class="scene-label"><span>scene morph</span><span>35%</span></span>
+        <div class="scene-track">
+          <div class="scene-fill"></div>
+          <div class="scene-thumb" style="left: 35%"></div>
+        </div>
+      </div>
+
+      <div class="dw-block">
+        <span class="scene-label"><span>dry / wet</span><span>88%</span></span>
+        <div class="dw-track">
+          <div class="dw-fill"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="caption">GLITCHWAVE / LIVE TAB / MOCKUP v0.1</div>
+
+</body>
+</html>
