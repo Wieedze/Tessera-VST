@@ -14,14 +14,17 @@ Légende :
 ### Niveau 1 — Fondamentaux
 
 - [ ] Value / reference / pointer (`T`, `T&`, `T*`)
-- [~] `const` correctness (vu : `const` sur méthode read, sens "ne modifie pas l'objet")
-- [ ] RAII et destructeurs automatiques
+- [~] `const` correctness (sait que `const` sur méthode = "ne modifie pas l'objet" ; **piège à clarifier** : `const` ≠ thread safety, checkpoint 2026-05-12)
+- [~] RAII et destructeurs automatiques (vu via JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR et destruction auto de membres value)
 - [x] `std::array` vs `std::vector` — choix de container (exo 3.2 : array, taille fixe à la compile)
 - [x] Stack vs heap — où vit quoi (array sur la pile, atomic membre = dans l'objet)
 - [ ] `auto` et déduction de type
 - [ ] `nullptr` vs `NULL` vs `0`
-- [ ] Headers vs implementation (`.h` / `.cpp`), include guards
+- [~] Headers vs implementation (`.h` / `.cpp`), include guards (vu `#pragma once`, séparation déclaration/implémentation, `static constexpr` dans header)
 - [x] Namespaces et `::` (std::, ::-resolution, `using namespace` à éviter)
+- [~] `noexcept` (vu : contrat "ne lance jamais d'exception", utilisé sur les méthodes RT-safe)
+- [~] `static_cast<T>` (vs conversion implicite, vs `std::floor` pour valeurs négatives)
+- [~] C++ name hiding et `using Base::method` (warning `-Woverloaded-virtual`, fix `using juce::AudioProcessor::processBlock`)
 
 ### Niveau 2 — Types et templates
 
@@ -35,11 +38,11 @@ Légende :
 
 ### Niveau 3 — Threading et atomics
 
-- [~] `std::atomic<T>` — load/store/fetch_add (vu via exo 3.2 : load + store sur int counter)
+- [~] `std::atomic<T>` — load/store (vu via exo 3.2 + CaptureBuffer ; **distinction range vs atomicity à renforcer** — checkpoint 2026-05-12 Q1)
 - [ ] Memory ordering (`relaxed`, `acquire`, `release`, `seq_cst`)
 - [ ] Pourquoi `std::mutex` est interdit dans `processBlock`
 - [ ] Lock-free SPSC FIFO (concept)
-- [ ] Data race vs race condition
+- [~] Data race vs race condition (**confusion avec `const` détectée** — checkpoint 2026-05-12 Q2, à revoir)
 
 ### Niveau 4 — Polymorphisme
 
@@ -50,7 +53,7 @@ Légende :
 
 ### Niveau 5 — DSP
 
-- [ ] Ring buffer + interpolation linéaire
+- [x] Ring buffer + interpolation linéaire (CaptureBuffer implémenté + 8 tests + bonne réponse au checkpoint Q4 sur `std::floor` vs `static_cast`)
 - [ ] Phase accumulation (LFO)
 - [ ] Hann envelope
 - [ ] Voice pooling + voice stealing
@@ -58,6 +61,12 @@ Légende :
 - [ ] Denormals et flush-to-zero
 - [ ] Convolution / IR filtering
 - [ ] FFT / overlap-add
+
+### JUCE-spécifique
+
+- [~] `juce::AudioBuffer<float>` : `getReadPointer`/`getWritePointer` vs `getSample`/`setSample` (**piège perf détecté** — checkpoint Q3, à revoir : raw pointers = perf, pas sécurité)
+- [~] `juce::ScopedNoDenormals` comme RAII guard en première ligne de processBlock
+- [~] `JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR` : supprime copy + active leak detector
 
 ---
 
@@ -81,13 +90,13 @@ Suit la phasing dans `docs/spec-vst.md` §12 (étendu par `spec-updates-v0.2.md`
 
 ### Semaine 1 — Bootstrap + CaptureBuffer
 
-- [ ] Pamplejuce cloné, CMake adapté à Tessera
-- [ ] Build vide passe sur ma plateforme
-- [ ] VST3 vide se charge dans Reaper
-- [ ] `CaptureBuffer` implémenté (ring buffer + interpolation linéaire)
-- [ ] Tests `CaptureBuffer_tests.cpp` passent (round-trip, wrap, freeze, interp, no-alloc)
-- [ ] `processBlock` capture l'input, le repasse à l'output (bypass parfait)
-- [ ] Checkpoint quiz `cpp-mentor` semaine 1 validé
+- [x] Pamplejuce cloné, CMake adapté à Tessera (Tssr / MxLb / com.maxlab.tessera)
+- [x] Build VST3 + CLAP + Standalone passe sur Linux (gcc 13.3, JUCE 8.0.12)
+- [x] Plugin installé auto dans `~/.vst3/Tessera.vst3`
+- [x] `CaptureBuffer` implémenté : ring buffer stéréo 32s + interpolation linéaire + freeze + wrap-around
+- [x] Tests `CaptureBuffer_tests.cpp` passent : 8 cases, 6029 assertions (round-trip, wrap, freeze, interp, RT-safety stress)
+- [x] `processBlock` capture l'input via `captureBuffer.write(buffer)` après `ScopedNoDenormals` ; bypass parfait
+- [x] Checkpoint quiz `cpp-mentor` semaine 1 — 1.5/4 (zones à renforcer : threading/atomic + JUCE perf patterns)
 
 ### Semaine 2 — FxBank + Stutter
 
@@ -101,4 +110,16 @@ Suit la phasing dans `docs/spec-vst.md` §12 (étendu par `spec-updates-v0.2.md`
 
 Liste les questions/réponses des checkpoints de l'agent `cpp-mentor`.
 
-(vide — premier checkpoint à venir après le CaptureBuffer)
+### 2026-05-12 — Semaine 1 / CaptureBuffer (1.5 / 4)
+
+| Q | Sujet | Note | Note libre |
+|---|---|---|---|
+| Q1 | Pourquoi `std::atomic<int64_t>` pour `writePos` ? | 0.5 / 1 | A vu la raison "range int64" (évite wrap 13h). N'a pas distingué la 2ème raison "atomicity" (thread-safety lecture UI). |
+| Q2 | Que se passe-t-il si write/read sur CaptureBuffer en simultané ? | 0 / 1 | A répondu "const = thread safety" — **confusion à corriger**. La vraie protection vient de `std::atomic` sur `writePos`, pas de `const`. Le contenu du ringBuffer est en data race "techniquement UB, inaudible en pratique sur x86". |
+| Q3 | Pourquoi `getReadPointer/getWritePointer` plutôt que `getSample/setSample` ? | 0 / 1 | A répondu "sécurité" — **inverse**. C'est de la **performance** (pas de bounds check, SIMD-friendly). La sécurité se gère par les guards en amont (jmin sur les channels). |
+| Q4 | Pourquoi `std::floor` plutôt que `static_cast<int>` ? | 1 / 1 | ✅ A bien capté : différence pour `samplePos < 0`. Cas concret donné par le mentor : `-1.5` → cast donne -1 / floor donne -2 → interpolation `frac` négative si cast, propre avec floor. |
+| Q5 | Comment supporter 5.1 ? | skip | Skip. Réponse donnée par le mentor : `prepare(sr, int numChannels)`, le reste presque inchangé grâce au design channel-agnostic. |
+
+**Concepts à reprendre avant la semaine 2** :
+- **Data race vs thread safety** — `const` ne protège pas, `std::atomic` oui (pour les types triviaux uniquement)
+- **Pattern JUCE perf** — `getReadPointer/getWritePointer` = perf, pas sécurité ; on les utilise systématiquement dans les hot loops
