@@ -42,16 +42,16 @@ violations=()
 scan() {
     local pattern="$1"
     local label="$2"
-    # Skip line comments and doc-comment continuations.
-    # No trailing \b — many patterns end on a character class that breaks word-boundary semantics.
-    if grep -nP "\b${pattern}" "$file_path" \
-        | grep -vP '^\s*[0-9]+:\s*//|^\s*[0-9]+:\s*\*' \
-        | grep -vP 'prepare\s*\(' >/dev/null; then
+    # Filters applied to candidate lines (any match here = ignored):
+    #   - line comments and doc-comment continuations
+    #   - prepare()/reset() bodies (heuristic: line contains 'prepare(' or 'reset(')
+    #   - JUCE factory functions called from message thread / host init, never the audio path:
+    #     createEditor, createPluginFilter (JUCE_CALLTYPE-decorated factory)
+    #   - return statements that allocate UI/Editor objects (UI thread)
+    local filter='^\s*[0-9]+:\s*//|^\s*[0-9]+:\s*\*|prepare\s*\(|reset\s*\(|createEditor|createPluginFilter|JUCE_CALLTYPE|new\s+Plugin(Editor|Processor)'
+    if grep -nP "\b${pattern}" "$file_path" | grep -vP "$filter" >/dev/null; then
         local hits
-        hits="$(grep -nP "\b${pattern}" "$file_path" \
-                | grep -vP '^\s*[0-9]+:\s*//|^\s*[0-9]+:\s*\*' \
-                | grep -vP 'prepare\s*\(' \
-                | head -5)"
+        hits="$(grep -nP "\b${pattern}" "$file_path" | grep -vP "$filter" | head -5)"
         violations+=("[$label]"$'\n'"$hits")
     fi
 }
