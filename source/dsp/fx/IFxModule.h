@@ -21,13 +21,20 @@ namespace tessera::dsp
 
     /// All concrete FX types known to the system. Used by the Sequencer
     /// to address a specific FX, and by FxBank as a lookup key.
+    ///
+    /// The 'Count' sentinel at the end gives us the number of valid FX types
+    /// without manual maintenance. Always keep Count last when adding new types.
     enum class FxType
     {
         Thru,    // bypass — input passes through unchanged
         Stutter, // re-read a recent slice of capture buffer at a musical rate
         // Reverser, TapeStop, Filter, Bitcrusher, Gater, PitchShifter, Granular, Slicer
-        // will be added in upcoming weeks.
+        // will be added in upcoming weeks. Always insert BEFORE Count.
+        Count
     };
+
+    /// Number of valid FxType values (excluding the Count sentinel itself).
+    inline constexpr size_t kNumFxTypes = static_cast<size_t> (FxType::Count);
 
     /**
      * @brief Plain-data parameters passed to every FX::process() call.
