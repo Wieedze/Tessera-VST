@@ -1,6 +1,7 @@
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
+#include "dsp/CaptureBuffer.h"
 
 #if (MSVC)
 #include "ipps.h"
@@ -9,6 +10,11 @@
 class PluginProcessor : public juce::AudioProcessor
 {
 public:
+    // Re-introduce the AudioBuffer<double> overload from the base class so it
+    // is not silently hidden by the AudioBuffer<float> override below.
+    // See ADR-0001 reasoning style: protect against the C++ name-hiding rule.
+    using juce::AudioProcessor::processBlock;
+
     PluginProcessor();
     ~PluginProcessor() override;
 
@@ -39,5 +45,7 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
 
 private:
+    tessera::dsp::CaptureBuffer captureBuffer;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };
