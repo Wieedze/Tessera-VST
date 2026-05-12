@@ -100,7 +100,13 @@ Suit la phasing dans `docs/spec-vst.md` §12 (étendu par `spec-updates-v0.2.md`
 
 ### Semaine 2 — FxBank + Stutter
 
-- [ ] À détailler quand on y arrive
+- [x] `IFxModule` interface (pure virtual + FxType enum + FxParams struct)
+- [x] `ThruFx` — bypass FX, preuve du polymorphisme via `unique_ptr<IFxModule>`
+- [x] `FxBank` — registry pré-alloué `std::array<unique_ptr<IFxModule>, kNumFxTypes>`
+- [x] `StutterFx` — 1er FX musical (loop 1/N note depuis CaptureBuffer)
+- [x] `PluginProcessor` câblé : APVTS (fx_type, stutter_rate) + cached atomic ptrs + dispatch via FxBank
+- [x] 20 test cases, 6220 assertions, build clean (VST3 + CLAP + Standalone)
+- [~] Checkpoint quiz `cpp-mentor` semaine 2 — **skipped 2026-05-12, à revisiter** (4 questions reportées plus bas)
 
 ### (semaines suivantes — à compléter au fur et à mesure)
 
@@ -122,4 +128,19 @@ Liste les questions/réponses des checkpoints de l'agent `cpp-mentor`.
 
 **Concepts à reprendre avant la semaine 2** :
 - **Data race vs thread safety** — `const` ne protège pas, `std::atomic` oui (pour les types triviaux uniquement)
+- **Pattern JUCE perf** — `getReadPointer/getWritePointer` = perf, pas sécurité
+
+### 2026-05-12 — Semaine 2 / FxBank + StutterFx — DEFERRED (pas eu le temps)
+
+Les 4 questions à reprendre à froid :
+
+1. **Virtual destructor** — si on enlève `virtual` devant `~IFxModule() = default;`, que se passe-t-il quand `std::unique_ptr<IFxModule> fx = std::make_unique<StutterFx>(); fx.reset();` ? Quel destructeur est appelé, et quels membres ne sont pas libérés ?
+
+2. **`std::array` vs `std::unordered_map`** dans FxBank — l'arch doc suggérait map, on a fait array. Donne 2 raisons distinctes pour lesquelles array est meilleur pour notre cas.
+
+3. **Cached APVTS pointers** — pourquoi on cache `fxTypeParam = apvts.getRawParameterValue("fx_type")` au constructeur, et qu'est-ce qui se passe **concrètement** si on appelle `apvts.getRawParameterValue("fx_type")` à chaque processBlock ? (Indice : lesson 0004)
+
+4. **Design extrapolation** — ajouter un `ReverserFx` : liste les 5 étapes (fichiers + actions) concrètes.
+
+Note : à revisiter avant la semaine 3 idéalement, pour solidifier les bases OOP/JUCE avant d'ajouter plus de FX ou d'attaquer le Sequencer.
 - **Pattern JUCE perf** — `getReadPointer/getWritePointer` = perf, pas sécurité ; on les utilise systématiquement dans les hot loops
