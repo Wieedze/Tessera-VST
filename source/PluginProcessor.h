@@ -1,7 +1,9 @@
 #pragma once
 
+#include <atomic>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "dsp/CaptureBuffer.h"
+#include "dsp/fx/FxBank.h"
 
 #if (MSVC)
 #include "ipps.h"
@@ -12,7 +14,6 @@ class PluginProcessor : public juce::AudioProcessor
 public:
     // Re-introduce the AudioBuffer<double> overload from the base class so it
     // is not silently hidden by the AudioBuffer<float> override below.
-    // See ADR-0001 reasoning style: protect against the C++ name-hiding rule.
     using juce::AudioProcessor::processBlock;
 
     PluginProcessor();
@@ -44,8 +45,22 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    /// Exposed for the editor and for tests.
+    juce::AudioProcessorValueTreeState& getAPVTS() { return apvts; }
+
 private:
+    static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
+
+    juce::AudioProcessorValueTreeState apvts;
+
     tessera::dsp::CaptureBuffer captureBuffer;
+    tessera::dsp::FxBank        fxBank;
+
+    // Cached APVTS pointers — refreshed in the constructor (after apvts is built)
+    // and read via std::atomic<float>::load() in processBlock. NEVER call
+    // apvts.getRawParameterValue() inside the audio path (string hash cost).
+    std::atomic<float>* fxTypeParam      { nullptr };
+    std::atomic<float>* stutterRateParam { nullptr };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };
