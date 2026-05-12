@@ -6,7 +6,7 @@ These rules apply to **any code reachable from `processBlock`**. The audio threa
 
 Includes:
 - `PluginProcessor::processBlock` and everything it calls (transitively)
-- All modules under `source/dsp/*`
+- All modules under `src/dsp/*`
 - Callbacks from `juce::AudioPlayHead`, `juce::AudioBuffer`
 
 Excludes (allocation allowed):

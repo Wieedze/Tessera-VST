@@ -22,7 +22,7 @@ This file consolidates everything we need to know about working **with** the Pam
   - [Code signing](https://melatonin.dev/manuals/pamplejuce/getting-started/code-signing/)
 - Customization
   - [File management](https://melatonin.dev/manuals/pamplejuce/customization/file-management/)
-  - [Including files outside of /source](https://melatonin.dev/manuals/pamplejuce/customization/including-files-outside-of-source/)
+  - [Including files outside of /source](https://melatonin.dev/manuals/pamplejuce/customization/including-files-outside-of-src/)
 - JUCE
   - [Adding JUCE Modules](https://melatonin.dev/manuals/pamplejuce/juce/adding-juce-modules/)
   - [Private JUCE modules](https://melatonin.dev/manuals/pamplejuce/juce/private-juce-modules/)
@@ -97,7 +97,7 @@ The `VERSION` file at the repo root drives the plugin version. Pamplejuce reads 
 
 ## 4. File management conventions
 
-- **All source code** goes in `source/`. Auto-globbed. No manual `add_files`.
+- **All source code** goes in `src/`. Auto-globbed. No manual `add_files`.
 - **All tests** go in `tests/`. Auto-globbed. Linked against `SharedCode` (see §6).
 - **All benchmarks** go in `benchmarks/`. Auto-globbed too.
 - **All assets** (fonts, images, factory presets) go in `assets/`. Auto-included as `BinaryData` (see §7).
@@ -106,9 +106,9 @@ The `VERSION` file at the repo root drives the plugin version. Pamplejuce reads 
 
 ---
 
-## 5. Adding files outside `source/`
+## 5. Adding files outside `src/`
 
-If you must `#include` a header that lives outside `source/` (e.g. third-party single-header lib), add an explicit `target_include_directories()` to the relevant target in `CMakeLists.txt`. Pamplejuce's auto-glob does **not** reach beyond the standard folders.
+If you must `#include` a header that lives outside `src/` (e.g. third-party single-header lib), add an explicit `target_include_directories()` to the relevant target in `CMakeLists.txt`. Pamplejuce's auto-glob does **not** reach beyond the standard folders.
 
 ---
 
@@ -158,7 +158,7 @@ Auto-globs `tests/*.cpp`. A test file looks like:
 
 ```cpp
 #include <catch2/catch_test_macros.hpp>
-#include "MyModule.h"   // from source/
+#include "MyModule.h"   // from src/
 
 TEST_CASE("MyModule does X", "[dsp][mymodule]") {
     REQUIRE(/* assertion */);
@@ -215,7 +215,7 @@ Pamplejuce ships its own `.clang-format`:
 - 4-space indentation
 - No column limit (long lines OK if they read well)
 
-Run `clang-format -i source/*.cpp source/*.h` to format. CI does not enforce it by default — opt-in via a pre-commit hook if desired.
+Run `clang-format -i src/*.cpp src/*.h` to format. CI does not enforce it by default — opt-in via a pre-commit hook if desired.
 
 ---
 

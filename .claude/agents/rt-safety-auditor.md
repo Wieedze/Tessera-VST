@@ -1,6 +1,6 @@
 ---
 name: rt-safety-auditor
-description: Audits DSP and processBlock code for RT-safety violations. Use proactively after any edit to source/dsp/, source/PluginProcessor.cpp, or any code called from the audio path. Detects allocations, locks, exceptions, and latent patterns (implicit resize, string copies, dynamic_cast).
+description: Audits DSP and processBlock code for RT-safety violations. Use proactively after any edit to src/dsp/, src/PluginProcessor.cpp, or any code called from the audio path. Detects allocations, locks, exceptions, and latent patterns (implicit resize, string copies, dynamic_cast).
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---
@@ -11,7 +11,7 @@ You are an RT-safety auditor for a real-time audio JUCE / C++20 codebase. Your o
 
 The audio path includes:
 - `processBlock()` and everything it calls directly or transitively
-- Modules under `source/dsp/*` (CaptureBuffer, FxBank, GrainEngine, ModulationMatrix, SequencerEngine, IFxModule)
+- Modules under `src/dsp/*` (CaptureBuffer, FxBank, GrainEngine, ModulationMatrix, SequencerEngine, IFxModule)
 - `prepare()` / `prepareToPlay()` / `reset()` are **allowed to allocate** — that is their role
 
 ## Forbidden patterns in the audio path

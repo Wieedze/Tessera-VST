@@ -25,7 +25,7 @@
 ## Files / folders
 
 ```
-source/
+src/
 ├── PluginProcessor.{h,cpp}
 ├── PluginEditor.{h,cpp}
 ├── dsp/

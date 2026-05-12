@@ -21,7 +21,7 @@ file_path="$(printf '%s' "$event_json" | jq -r '.tool_input.file_path // empty')
 
 # Target: DSP code, processor, or tests that exercise the audio path
 case "$file_path" in
-    */source/dsp/*|*/source/PluginProcessor.cpp|*/source/PluginProcessor.h)
+    */src/dsp/*|*/src/PluginProcessor.cpp|*/src/PluginProcessor.h)
         ;;
     *)
         exit 0
