@@ -78,11 +78,12 @@ TEST_CASE("<Module> :: round-trip identity", "[dsp][<module>]") {
   CHECK((a == b && c < d));    // ✅ extra parens
   CHECK(a == b && c < d);      // ❌ compilation error or surprise behavior
   ```
-- **Float comparisons** — never `==`. Always:
+- **Float comparisons** — never `==`, even when both sides are exact literals. GCC `-Wfloat-equal` warns on any float `==`, and per our "warnings = errors" policy the build fails. Always:
   ```cpp
   REQUIRE(value == Approx(expected));
   REQUIRE_THAT(value, WithinAbs(expected, 1e-6));
   ```
+  Reason: this builds the habit for when the value IS the result of a computation (where `==` truly is unsafe). And it keeps CI green.
 - **Single test run syntax** — Catch2 v3:
   ```bash
   ./Builds/Tests "[dsp][capturebuffer]"     # by tag
