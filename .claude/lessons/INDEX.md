@@ -21,6 +21,7 @@ Numbering is sequential, 4 digits, prefix `NNNN-<short-slug>.md`.
 | 0009 | [JUCE Starter license is fine until $20k cumulative revenue/year](0009-juce-starter-license.md) | `[business]` `[release]` |
 | 0010 | [DSP→UI viz data must be control-rate, not sample-rate](0010-dsp-ui-viz-control-rate.md) | `[arch]` `[ui]` `[perf]` |
 | 0011 | [RT-safety hook needs to exclude JUCE factory functions](0011-rt-safety-hook-factory-false-positives.md) | `[rt-safety]` `[workflow]` `[tooling]` |
+| 0012 | [`// RT-OK:` marker convention for hook false positives](0012-rt-safe-marker-convention.md) | `[rt-safety]` `[workflow]` `[tooling]` |
 
 ## Archived
 

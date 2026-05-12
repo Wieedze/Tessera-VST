@@ -48,7 +48,9 @@ scan() {
     #   - JUCE factory functions called from message thread / host init, never the audio path:
     #     createEditor, createPluginFilter (JUCE_CALLTYPE-decorated factory)
     #   - return statements that allocate UI/Editor objects (UI thread)
-    local filter='^\s*[0-9]+:\s*//|^\s*[0-9]+:\s*\*|prepare\s*\(|reset\s*\(|createEditor|createPluginFilter|JUCE_CALLTYPE|new\s+Plugin(Editor|Processor)'
+    #   - explicit developer-asserted safety via // RT-OK: <reason>
+    #     (use sparingly; reason MUST be present after the colon)
+    local filter='^\s*[0-9]+:\s*//|^\s*[0-9]+:\s*\*|prepare\s*\(|reset\s*\(|createEditor|createPluginFilter|JUCE_CALLTYPE|new\s+Plugin(Editor|Processor)|RT-OK:'
     if grep -nP "\b${pattern}" "$file_path" | grep -vP "$filter" >/dev/null; then
         local hits
         hits="$(grep -nP "\b${pattern}" "$file_path" | grep -vP "$filter" | head -5)"
