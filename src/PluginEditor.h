@@ -16,9 +16,12 @@ public:
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     PluginProcessor& processorRef;
+
+    // Auto-generated UI from the processor's APVTS parameter list.
+    // Placeholder until we build the real custom UI (docs/design-system.md, week 8+).
+    juce::GenericAudioProcessorEditor genericEditor;
+
     std::unique_ptr<melatonin::Inspector> inspector;
     juce::TextButton inspectButton { "Inspect the UI" };
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginEditor)

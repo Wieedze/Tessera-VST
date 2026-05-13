@@ -1,13 +1,14 @@
 #include "PluginEditor.h"
 
 PluginEditor::PluginEditor (PluginProcessor& p)
-    : AudioProcessorEditor (&p), processorRef (p)
+    : AudioProcessorEditor (&p)
+    , processorRef (p)
+    , genericEditor (p) // Build sliders/combos from p's parameter list (APVTS).
 {
-    juce::ignoreUnused (processorRef);
-
+    addAndMakeVisible (genericEditor);
     addAndMakeVisible (inspectButton);
 
-    // this chunk of code instantiates and opens the melatonin inspector
+    // Melatonin inspector for live UI debugging (Pamplejuce default).
     inspectButton.onClick = [&] {
         if (!inspector)
         {
@@ -18,9 +19,8 @@ PluginEditor::PluginEditor (PluginProcessor& p)
         inspector->setVisible (true);
     };
 
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    // Wider/taller to fit the auto-generated parameter strip + inspector button.
+    setSize (520, 360);
 }
 
 PluginEditor::~PluginEditor()
@@ -29,20 +29,19 @@ PluginEditor::~PluginEditor()
 
 void PluginEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
+    // Background fill — the generic editor and the inspector button draw on top.
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
-
-    auto area = getLocalBounds();
-    g.setColour (juce::Colours::white);
-    g.setFont (16.0f);
-    auto helloWorld = juce::String ("Hello from ") + PRODUCT_NAME_WITHOUT_VERSION + " v" VERSION + " running in " + CMAKE_BUILD_TYPE;
-    g.drawText (helloWorld, area.removeFromTop (150), juce::Justification::centred, false);
 }
 
 void PluginEditor::resized()
 {
-    // layout the positions of your child components here
     auto area = getLocalBounds();
-    area.removeFromBottom(50);
-    inspectButton.setBounds (getLocalBounds().withSizeKeepingCentre(100, 50));
+    const int buttonHeight = 40;
+    const int buttonMargin = 8;
+
+    // Inspector button: small strip at the bottom.
+    inspectButton.setBounds (area.removeFromBottom (buttonHeight).reduced (buttonMargin));
+
+    // Generic editor: the rest of the window, auto-laying out one row per APVTS param.
+    genericEditor.setBounds (area);
 }
