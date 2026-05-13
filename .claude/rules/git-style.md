@@ -37,19 +37,55 @@ The `--no-ff` flag preserves the **structure** of the dev work (you can later se
 - **No force-push to `dev`** unless you are the only one working on it AND you have a good reason.
 - **Branch protection on main** can be enabled on GitHub Settings → Branches → Add classic branch protection rule, pattern `main`, "Require pull request before merging". Optional but recommended once collaborators land.
 
-### Feature branches (later, when needed)
+### Feature branches — required from sprint W3 onwards
 
-For a non-trivial multi-day feature, branch off `dev`:
+Starting with sprint W3, **every feature ships on its own branch off `dev`**. Reason: each feature must be **testable in isolation** (build, unit tests, audible test in Ableton) before being merged back. This catches regressions early and keeps `dev` always in a working state.
+
+#### Naming convention
+
+`feat/<scope>-<short-slug>` for new features (e.g. `feat/fx-reverser`, `feat/fx-tapestop`, `feat/workflow-install-script`).
+
+Other prefixes follow the same pattern: `fix/<scope>-<short>`, `refactor/<scope>-<short>`, `chore/<short>`, `docs/<short>`.
+
+#### Workflow per feature
+
 ```bash
+# 1. Start from latest dev
 git checkout dev
+git pull
+
+# 2. Branch off
 git checkout -b feat/<scope>-<short>
-# ... work ...
+
+# 3. Work + commit granularly on this branch
+# (the same granular-commits rules apply: each commit compiles + tests pass)
+git add <files>
+git commit -m "feat(<scope>): <message>"
+# ... more commits ...
+
+# 4. Push the branch for safety + cross-machine sync
+git push -u origin feat/<scope>-<short>
+
+# 5. Validate in isolation
+#    - Linux: cmake --build Builds && ./Builds/Tests
+#    - Windows: git pull (other machine), build, install VST3, audible test in Ableton
+#    - Run any feature-specific tests (e.g. pluginval for an FX module)
+
+# 6. Merge back into dev with --no-ff (preserves the branch shape in history)
 git checkout dev
 git merge --no-ff feat/<scope>-<short>
+git push
+
+# 7. Cleanup (optional — keeping the branch on origin is fine for traceability)
 git branch -d feat/<scope>-<short>
+git push origin --delete feat/<scope>-<short>
 ```
 
-For now (solo dev, single track), working directly on `dev` is fine.
+#### When to NOT use a feature branch
+
+- Hotfix of a typo / one-line fix → commit directly on `dev`
+- Updating learning docs (`docs/learning/*.md`) → directly on `dev`
+- Routine merge of `dev` → `main` at end of sprint → direct merge, no branch needed
 
 ## Format
 
