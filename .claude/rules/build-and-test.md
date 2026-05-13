@@ -133,6 +133,48 @@ Pamplejuce defines two useful preprocessor macros for the Tests / Benchmarks tar
 #endif
 ```
 
+## Windows build + install workflow
+
+Tessera disables `COPY_PLUGIN_AFTER_BUILD` in `CMakeLists.txt` because the JUCE auto-copy goes to `C:\Program Files\Common Files\VST3\` which:
+1. requires admin rights, and
+2. fails if a DAW (e.g. Ableton) is holding the DLL.
+
+We ship `scripts/install-vst3.ps1` (PowerShell) to handle install as a separate step.
+
+### Per-iteration workflow (after every code change)
+
+```powershell
+# In the Windows-side PowerShell, in C:\dev\Tessera-VST :
+
+# 1. Build incrementally — ~30 s after first full build
+cmake --build Builds-Win --config Release
+
+# 2. Install the VST3 to the user-writable folder (no admin needed)
+.\scripts\install-vst3.ps1
+
+# 3. In Ableton: Preferences > Plug-Ins > Rescan Plug-Ins
+#    (or remove the device from the track and re-drag it)
+```
+
+### Defaults and overrides
+
+By default the script installs to `%APPDATA%\VST3` (= `C:\Users\Max\AppData\Roaming\VST3`). Configure Ableton to scan this folder via:
+**Preferences → Plug-Ins → "Use VST3 Plug-In Custom Folder" → Browse**.
+
+To install elsewhere, pass `-Destination`:
+```powershell
+.\scripts\install-vst3.ps1 -Destination "D:\MyPlugins\VST3"
+```
+
+### When Ableton holds the DLL
+
+The script detects the lock and prints a clear instruction. Three release options, fastest first:
+- Ableton — Ctrl+J on the Tessera device disables it, which usually releases the DLL handle.
+- Remove the Tessera device from every track that has it.
+- Quit Ableton completely (not just close the project).
+
+After release, rerun the script.
+
 ## Plugin validation
 
 Beyond Catch2 unit tests, two validators run in CI (and should be run before each tagged release):
