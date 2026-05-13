@@ -26,10 +26,11 @@ namespace tessera::dsp
     /// without manual maintenance. Always keep Count last when adding new types.
     enum class FxType
     {
-        Thru,    // bypass — input passes through unchanged
-        Stutter, // re-read a recent slice of capture buffer at a musical rate
-        // Reverser, TapeStop, Filter, Bitcrusher, Gater, PitchShifter, Granular, Slicer
-        // will be added in upcoming weeks. Always insert BEFORE Count.
+        Thru,     // bypass — input passes through unchanged
+        Stutter,  // re-read a recent slice of capture buffer at a musical rate
+        Reverser, // re-read a recent slice of capture buffer in reverse
+        // TapeStop, Filter, Bitcrusher, Gater, PitchShifter, Granular, Slicer
+        // will be added in upcoming sessions. Always insert BEFORE Count.
         Count
     };
 
@@ -56,6 +57,9 @@ namespace tessera::dsp
         float stutterRate  { 0.0625f }; // 1/16 note by default
         float stutterDecay { 0.0f };    // 0 = no decay across repeats
         float stutterGate  { 1.0f };    // [0..1] fraction of the slice that plays
+
+        // Reverser-specific
+        float reverserWindowMs { 250.0f }; // duration of the slice replayed in reverse
     };
 
     /**

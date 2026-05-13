@@ -23,10 +23,12 @@ PluginProcessor::PluginProcessor()
 {
     // Cache the atomic pointers ONCE. Reading via getRawParameterValue() in
     // processBlock would re-hash the string ID at audio rate (see lesson 0004).
-    fxTypeParam      = apvts.getRawParameterValue ("fx_type");
-    stutterRateParam = apvts.getRawParameterValue ("stutter_rate");
-    jassert (fxTypeParam      != nullptr);
-    jassert (stutterRateParam != nullptr);
+    fxTypeParam         = apvts.getRawParameterValue ("fx_type");
+    stutterRateParam    = apvts.getRawParameterValue ("stutter_rate");
+    reverserWindowParam = apvts.getRawParameterValue ("reverser_window_ms");
+    jassert (fxTypeParam         != nullptr);
+    jassert (stutterRateParam    != nullptr);
+    jassert (reverserWindowParam != nullptr);
 }
 
 PluginProcessor::~PluginProcessor() = default;
@@ -40,7 +42,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     layout.add (std::make_unique<juce::AudioParameterChoice> ( // RT-OK: parameter layout (host thread, init time)
         juce::ParameterID { "fx_type", 1 },
         "FX Type",
-        juce::StringArray { "Thru", "Stutter" },
+        juce::StringArray { "Thru", "Stutter", "Reverser" },
         0)); // default = Thru
 
     // stutter_rate: musical division for the Stutter loop window.
@@ -49,6 +51,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         "Stutter Rate",
         juce::StringArray { "1/2", "1/4", "1/8", "1/16", "1/32", "1/64" },
         3)); // default = 1/16
+
+    // reverser_window_ms: duration of the slice replayed in reverse, in ms.
+    layout.add (std::make_unique<juce::AudioParameterFloat> ( // RT-OK: parameter layout (host thread, init time)
+        juce::ParameterID { "reverser_window_ms", 1 },
+        "Reverser Window",
+        juce::NormalisableRange<float> (50.0f, 2000.0f, 1.0f),
+        250.0f));
 
     return layout;
 }
@@ -173,8 +182,9 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     // 2. Snapshot the relevant APVTS values for this block. Atomic loads —
     //    no string lookups in the audio path.
-    const auto fxIdx   = static_cast<int> (fxTypeParam->load());
-    const auto rateIdx = static_cast<int> (stutterRateParam->load());
+    const auto fxIdx          = static_cast<int>   (fxTypeParam->load());
+    const auto rateIdx        = static_cast<int>   (stutterRateParam->load());
+    const auto reverserWinMs  =                     reverserWindowParam->load();
 
     // 3. Build the FxParams snapshot (sampleRate, bpm, stutter rate, ...).
     tessera::dsp::FxParams params;
@@ -188,7 +198,8 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                 params.bpm = *bpmOpt;
         }
     }
-    params.stutterRate = kStutterRateValues[juce::jlimit (0, kStutterRateCount - 1, rateIdx)];
+    params.stutterRate     = kStutterRateValues[juce::jlimit (0, kStutterRateCount - 1, rateIdx)];
+    params.reverserWindowMs = reverserWinMs;
 
     // 4. Dispatch to the selected FX. O(1) lookup in FxBank (array index).
     const auto currentFx = static_cast<tessera::dsp::FxType> (
