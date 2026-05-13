@@ -141,6 +141,19 @@ Tessera disables `COPY_PLUGIN_AFTER_BUILD` in `CMakeLists.txt` because the JUCE 
 
 We ship `scripts/install-vst3.ps1` (PowerShell) to handle install as a separate step.
 
+### Prerequisite — PowerShell execution policy (one-time setup)
+
+By default Windows blocks the execution of unsigned `.ps1` scripts. To allow our local install script (and any future Tessera tooling), run **once** in PowerShell:
+
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+- `RemoteSigned` allows local scripts and refuses unsigned ones downloaded from the internet. This is Microsoft's recommended dev setting.
+- `-Scope CurrentUser` only changes the policy for your user — no admin needed, no impact on other users of the machine.
+
+You can verify with `Get-ExecutionPolicy -Scope CurrentUser` (should print `RemoteSigned`).
+
 ### Per-iteration workflow (after every code change)
 
 ```powershell
