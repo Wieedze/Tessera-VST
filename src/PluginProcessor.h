@@ -65,6 +65,7 @@ private:
     // apvts.getRawParameterValue() inside the audio path (string hash cost).
     std::atomic<float>* fxTypeParam          { nullptr };
     std::atomic<float>* stutterRateParam     { nullptr };
+    std::atomic<float>* stutterGateParam     { nullptr };
     std::atomic<float>* reverserWindowParam  { nullptr };
     std::atomic<float>* tapeStopLengthParam  { nullptr };
     std::atomic<float>* tapeStopCurveParam   { nullptr };

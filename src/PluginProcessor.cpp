@@ -25,11 +25,13 @@ PluginProcessor::PluginProcessor()
     // processBlock would re-hash the string ID at audio rate (see lesson 0004).
     fxTypeParam         = apvts.getRawParameterValue ("fx_type");
     stutterRateParam    = apvts.getRawParameterValue ("stutter_rate");
+    stutterGateParam    = apvts.getRawParameterValue ("stutter_gate_norm");
     reverserWindowParam = apvts.getRawParameterValue ("reverser_window_ms");
     tapeStopLengthParam = apvts.getRawParameterValue ("tapestop_length_ms");
     tapeStopCurveParam  = apvts.getRawParameterValue ("tapestop_curve");
     jassert (fxTypeParam         != nullptr);
     jassert (stutterRateParam    != nullptr);
+    jassert (stutterGateParam    != nullptr);
     jassert (reverserWindowParam != nullptr);
     jassert (tapeStopLengthParam != nullptr);
     jassert (tapeStopCurveParam  != nullptr);
@@ -55,6 +57,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         "Stutter Rate",
         juce::StringArray { "1/2", "1/4", "1/8", "1/16", "1/32", "1/64" },
         3)); // default = 1/16
+
+    // stutter_gate_norm: fraction of the rhythmic window that actually plays
+    // audio. The remainder of the window is silent, producing the classic
+    // "stuttered with gaps" feel. 1.0 = full slice (legacy behaviour), 0.5 =
+    // half audio + half silence, etc. A small minimum (0.05) avoids the
+    // degenerate "all silent" case where the user can't hear anything.
+    layout.add (std::make_unique<juce::AudioParameterFloat> ( // RT-OK: parameter layout (host thread, init time)
+        juce::ParameterID { "stutter_gate_norm", 1 },
+        "Stutter Gate",
+        juce::NormalisableRange<float> (0.05f, 1.0f, 0.001f),
+        0.5f)); // default = 50% audio / 50% silence
 
     // reverser_window_ms: duration of the slice replayed in reverse, in ms.
     layout.add (std::make_unique<juce::AudioParameterFloat> ( // RT-OK: parameter layout (host thread, init time)
@@ -202,6 +215,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
     //    no string lookups in the audio path.
     const auto fxIdx           = static_cast<int>   (fxTypeParam->load());
     const auto rateIdx         = static_cast<int>   (stutterRateParam->load());
+    const auto stutterGate     =                     stutterGateParam->load();
     const auto reverserWinMs   =                     reverserWindowParam->load();
     const auto tapeStopLenMs   =                     tapeStopLengthParam->load();
     const auto tapeCurveIdx    = static_cast<int>   (tapeStopCurveParam->load());
@@ -219,6 +233,7 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         }
     }
     params.stutterRate      = kStutterRateValues[juce::jlimit (0, kStutterRateCount - 1, rateIdx)];
+    params.stutterGate      = juce::jlimit (0.05f, 1.0f, stutterGate);
     params.reverserWindowMs = reverserWinMs;
     params.tapeStopLengthMs = tapeStopLenMs;
     params.tapeStopCurve    = static_cast<tessera::dsp::TapeCurve> (

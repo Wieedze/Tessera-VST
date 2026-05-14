@@ -81,12 +81,28 @@ namespace tessera::dsp
                 playPos       = 0;
             }
 
-            const double readPos = static_cast<double> (startPos + playPos);
+            // Gate: within each rhythmic window of length anchoredLoopLength,
+            // only the first (gate * loopLength) samples carry audio. The rest
+            // is silence. This produces the classic "stuttered with gaps"
+            // sound — e.g. gate=0.5 at 1/16 gives [audio][silence][audio]...
+            // We still advance playPos / samplesPlayed during the silent half
+            // so the rhythmic grid stays aligned with the host BPM.
+            const int playableLength = std::max (
+                1,
+                static_cast<int> (anchoredLoopLength * params.stutterGate));
 
-            for (int ch = 0; ch < numChannels; ++ch)
+            if (playPos < playableLength)
             {
-                buffer.setSample (ch, i, capture.readInterpolated (ch, readPos));
+                const double readPos = static_cast<double> (startPos + playPos);
+                for (int ch = 0; ch < numChannels; ++ch)
+                    buffer.setSample (ch, i, capture.readInterpolated (ch, readPos));
             }
+            else
+            {
+                for (int ch = 0; ch < numChannels; ++ch)
+                    buffer.setSample (ch, i, 0.0f);
+            }
+
             ++playPos;
             ++samplesPlayed;
         }
