@@ -5,7 +5,7 @@
 
 ## Context
 
-The PostToolUse hook `.claude/hooks/rt-safety-check.sh` blocked another legitimate allocation: `std::make_unique<ThruFx>()` inside `FxBank::FxBank()` (constructor body of FxBank in `source/dsp/fx/FxBank.cpp`).
+The PostToolUse hook `.claude/hooks/rt-safety-check.sh` blocked another legitimate allocation: `std::make_unique<ThruFx>()` inside `FxBank::FxBank()` (constructor body of FxBank in `src/dsp/fx/FxBank.cpp`).
 
 The hook already filters lines containing `prepare(`, `reset(`, JUCE factory functions, and a few other safe patterns. But it cannot easily detect "we are inside a constructor body" because grep is line-based and constructor bodies span multiple lines.
 

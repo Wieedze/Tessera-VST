@@ -12,7 +12,7 @@ While wiring `CaptureBuffer` into `PluginProcessor.cpp`, the PostToolUse hook (`
 
 ## Why it was a false positive
 
-The hook treats the entire file `source/PluginProcessor.cpp` as audio-path code. That heuristic works for 99% of its content but breaks for JUCE's two factory functions:
+The hook treats the entire file `src/PluginProcessor.cpp` as audio-path code. That heuristic works for 99% of its content but breaks for JUCE's two factory functions:
 
 - `createEditor()` is called by JUCE on the **message thread** when the user opens the plugin window. UI alloc is mandatory there.
 - `createPluginFilter()` is called by the host **once** at plugin instantiation. Allocating the AudioProcessor is mandatory and unavoidable.

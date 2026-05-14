@@ -1,6 +1,7 @@
 #include "FxBank.h"
 #include "ThruFx.h"
 #include "StutterFx.h"
+#include "ReverserFx.h"
 
 namespace tessera::dsp
 {
@@ -8,8 +9,9 @@ namespace tessera::dsp
     {
         // Pre-allocate every concrete FX. Order does not matter; we index by FxType.
         // Each new FX type adds exactly one make_unique<...> line here.
-        modules[static_cast<size_t> (FxType::Thru)]    = std::make_unique<ThruFx>();    // RT-OK: constructor body
-        modules[static_cast<size_t> (FxType::Stutter)] = std::make_unique<StutterFx>(); // RT-OK: constructor body
+        modules[static_cast<size_t> (FxType::Thru)]     = std::make_unique<ThruFx>();     // RT-OK: constructor body
+        modules[static_cast<size_t> (FxType::Stutter)]  = std::make_unique<StutterFx>();  // RT-OK: constructor body
+        modules[static_cast<size_t> (FxType::Reverser)] = std::make_unique<ReverserFx>(); // RT-OK: constructor body
     }
 
     void FxBank::prepareAll (double sampleRate, int maxBlockSize)

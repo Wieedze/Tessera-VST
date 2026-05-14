@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cmath>
-#include "../../../source/dsp/fx/StutterFx.h"
-#include "../../../source/dsp/fx/FxBank.h"
+#include "../../../src/dsp/fx/StutterFx.h"
+#include "../../../src/dsp/fx/FxBank.h"
 
 using namespace tessera::dsp;
 using Catch::Matchers::WithinAbs;

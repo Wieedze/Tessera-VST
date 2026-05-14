@@ -51,7 +51,7 @@ For EACH DSP module, write at minimum these 5 categories:
 ```cpp
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
-#include "../../source/dsp/<Module>.h"
+#include "../../src/dsp/<Module>.h"
 
 using Catch::Approx;
 using Catch::Matchers::WithinAbs;
@@ -109,7 +109,7 @@ See `.claude/rules/build-and-test.md` for the full operational guide.
 
 When asked to write tests for a module:
 
-1. **Read the module header** (`source/dsp/<Module>.h`) to learn the exact public API.
+1. **Read the module header** (`src/dsp/<Module>.h`) to learn the exact public API.
 2. **Read the .cpp** if needed to understand expected behavior.
 3. **Read** [docs/architecture-engines.md](docs/architecture-engines.md) for that module — its **"Pièges à éviter" / pitfalls** table gives direct test cases.
 4. **Read** an existing test file if any, to match style.

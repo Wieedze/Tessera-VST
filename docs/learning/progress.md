@@ -100,9 +100,115 @@ Suit la phasing dans `docs/spec-vst.md` §12 (étendu par `spec-updates-v0.2.md`
 
 ### Semaine 2 — FxBank + Stutter
 
-- [ ] À détailler quand on y arrive
+- [x] `IFxModule` interface (pure virtual + FxType enum + FxParams struct)
+- [x] `ThruFx` — bypass FX, preuve du polymorphisme via `unique_ptr<IFxModule>`
+- [x] `FxBank` — registry pré-alloué `std::array<unique_ptr<IFxModule>, kNumFxTypes>`
+- [x] `StutterFx` — 1er FX musical (loop 1/N note depuis CaptureBuffer)
+- [x] `PluginProcessor` câblé : APVTS (fx_type, stutter_rate) + cached atomic ptrs + dispatch via FxBank
+- [x] 20 test cases, 6220 assertions, build clean (VST3 + CLAP + Standalone)
+- [~] Checkpoint quiz `cpp-mentor` semaine 2 — **skipped 2026-05-12, à revisiter** (4 questions reportées plus bas)
 
-### (semaines suivantes — à compléter au fur et à mesure)
+### Semaine 3 — FX 2-5 (Reverser, TapeStop, Filter, Bitcrusher) + quality pass
+
+Plan détaillé : [docs/sprint-w3-plan.md](../sprint-w3-plan.md). Une feature branch par phase (cf. `.claude/rules/git-style.md` §"Feature branches").
+
+- [ ] **S1** `feat/workflow-install-script` — désactiver COPY_PLUGIN_AFTER_BUILD + PowerShell helper
+- [x] **S2** `feat/fx-reverser` — Reverser FX + tests + APVTS (audible in Ableton ; ugly until S6 quality pass — no crossfade/smoothing yet)
+- [ ] **S3** `feat/fx-tapestop` — TapeStop FX (variable speed, curve)
+- [ ] **S4** `feat/fx-filter` — Filter FX (juce::dsp::StateVariableTPTFilter)
+- [ ] **S5** `feat/fx-bitcrusher` — Bitcrusher FX (quantize + S&H)
+- [ ] **S6** `feat/quality-smoothing-crossfade` — Parameter smoothing partout + crossfade FxType + denormals
+- [ ] **S7** `feat/quality-validation` — pluginval strict pass + checkpoint cpp-mentor W3 + merge dev→main
+
+### Semaine 4 — FX 6-7 + Spatial
+
+- [ ] Gater FX (cf. spec-vst.md §4.2 #6)
+- [ ] PitchShifter FX (lit CaptureBuffer avec pitchRatio != 1)
+- [ ] Spatial layer : DelayFx + ReverbFx (toujours actifs, post-FX)
+
+### Semaine 5 — SequencerEngine
+
+- [ ] 16-step pattern, sync host PPQ (cf. architecture-engines.md §2)
+- [ ] Edge detection (1 tirage par step)
+- [ ] Crossfade FX switch déjà fait W3-S6
+- [ ] Swing, length, division
+
+### Semaine 6 — GrainEngine + GrainViewExporter (couplés, cf. v0.2)
+
+- [ ] Pool 32 voix granulaires (cf. architecture-engines.md §4)
+- [ ] Spawn schedule, voice stealing
+- [ ] Enveloppe Hann par grain
+- [ ] GrainViewExporter (atomic snapshot pour UI) — implémenté en parallèle
+
+### Semaine 7 — Slicer + ModulationMatrix v2 (9 fields)
+
+- [ ] Slicer BBCut
+- [ ] ModRouting struct **v2** (9 champs : enabled, source, sourceCurve, amount, polarity, dest, auxSource, invert, outputCurve, outputLevel) — cf. spec-updates-v0.2.md §2
+- [ ] **Lock la struct AVANT le preset format** (lesson 0002)
+- [ ] 32 routings max, std::array pré-alloué
+
+### Semaine 8 — UI Production tab v1 (sans viz finale)
+
+- [ ] Custom LookAndFeel `TesseraLookAndFeel : juce::LookAndFeel_V4`
+- [ ] Step sequencer strip (16 cells)
+- [ ] FX detail panel
+- [ ] Macros panel
+- [ ] Pas encore les overlays granulaire/FX
+
+### Semaine 9 — Sources étendues (v0.2)
+
+- [ ] 4 LFO indépendants (vs 1 dans v0.1)
+- [ ] 10 LFO shapes (Sine, Triangle, Saw, Square, Pulse, Noise, S&H, Lorenz, Rössler, Custom drawable)
+- [ ] **Lorenz + tests stabilité (10M samples, isfinite) AVANT le LfoEditor UI** (lesson 0001)
+- [ ] Modes (FREE/RETRIG/ENV) + direction + modifiers
+- [ ] 2 ENV ADSR + S&H + EnvFollower + 8 Macros
+
+### Semaine 10 — LfoEditor UI + DrawableCurveEditor (v0.2)
+
+- [ ] LfoEditor : visualisation phase + shape preview
+- [ ] DrawableCurveEditor : canvas avec drag handles, snap à grid, undo/redo
+
+### Semaine 11 — Matrix tab UI complet (v0.2)
+
+- [ ] ModRoutingRow component
+- [ ] ModMatrixGrid (32 routings)
+- [ ] Drag-to-modulate depuis sources → knobs
+
+### Semaine 12 — EngineActivityPanel + Granular overlay (v0.2)
+
+- [ ] Waveform du capture buffer en temps réel
+- [ ] Write head animé
+- [ ] Granular overlay : têtes de lecture par voix, spawn cursor, spread zone
+- [ ] OpenGL renderer obligatoire pour fluidité
+
+### Semaine 13 — Per-FX overlays (v0.2)
+
+- [ ] Stutter, Reverser, TapeStop, Slicer chacun avec son overlay sur la waveform
+- [ ] **MVP peut shipper sans ces overlays** si nécessaire (cf. spec-updates-v0.2.md note 5)
+
+### Semaine 14 — UI Live tab
+
+- [ ] Layout pour perf scénique (gros boutons, lisible à 2m)
+- [ ] 8 macros XY pads
+- [ ] 4 trigger pads patterns
+- [ ] Step indicator géant
+
+### Semaine 15 — Preset system + Browser tab
+
+- [ ] APVTS ValueTree sérialisable en XML
+- [ ] Factory presets (30) embedded dans BinaryData
+- [ ] User presets dans `~/Documents/Tessera/Presets/`
+- [ ] Tags + recherche fulltext
+- [ ] Save / Save As / Delete / Export
+
+### Semaine 16 — Validation, polish, beta privée
+
+- [ ] pluginval strict sur Mac + Windows
+- [ ] auval sur Mac (`auval -v aufx Tssr MxLb`)
+- [ ] Profiler CPU < 8% sur projet moyen
+- [ ] 10 beta testers
+- [ ] Site web + Gumroad/LemonSqueezy
+- [ ] **Release v1.0** — fin août 2026
 
 ---
 
@@ -122,4 +228,19 @@ Liste les questions/réponses des checkpoints de l'agent `cpp-mentor`.
 
 **Concepts à reprendre avant la semaine 2** :
 - **Data race vs thread safety** — `const` ne protège pas, `std::atomic` oui (pour les types triviaux uniquement)
+- **Pattern JUCE perf** — `getReadPointer/getWritePointer` = perf, pas sécurité
+
+### 2026-05-12 — Semaine 2 / FxBank + StutterFx — DEFERRED (pas eu le temps)
+
+Les 4 questions à reprendre à froid :
+
+1. **Virtual destructor** — si on enlève `virtual` devant `~IFxModule() = default;`, que se passe-t-il quand `std::unique_ptr<IFxModule> fx = std::make_unique<StutterFx>(); fx.reset();` ? Quel destructeur est appelé, et quels membres ne sont pas libérés ?
+
+2. **`std::array` vs `std::unordered_map`** dans FxBank — l'arch doc suggérait map, on a fait array. Donne 2 raisons distinctes pour lesquelles array est meilleur pour notre cas.
+
+3. **Cached APVTS pointers** — pourquoi on cache `fxTypeParam = apvts.getRawParameterValue("fx_type")` au constructeur, et qu'est-ce qui se passe **concrètement** si on appelle `apvts.getRawParameterValue("fx_type")` à chaque processBlock ? (Indice : lesson 0004)
+
+4. **Design extrapolation** — ajouter un `ReverserFx` : liste les 5 étapes (fichiers + actions) concrètes.
+
+Note : à revisiter avant la semaine 3 idéalement, pour solidifier les bases OOP/JUCE avant d'ajouter plus de FX ou d'attaquer le Sequencer.
 - **Pattern JUCE perf** — `getReadPointer/getWritePointer` = perf, pas sécurité ; on les utilise systématiquement dans les hot loops

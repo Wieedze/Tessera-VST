@@ -1,6 +1,6 @@
 ---
 name: ui-reviewer
-description: Specialized JUCE UI / LookAndFeel review for Tessera. Use after any change in source/ui/ or any custom Component, LookAndFeel, OpenGL renderer, or DSP→UI viz pipeline. Verifies design-system token compliance, OpenGL hygiene, lock-free DSP↔UI, drag-to-modulate, and accessibility / readability rules.
+description: Specialized JUCE UI / LookAndFeel review for Tessera. Use after any change in src/ui/ or any custom Component, LookAndFeel, OpenGL renderer, or DSP→UI viz pipeline. Verifies design-system token compliance, OpenGL hygiene, lock-free DSP↔UI, drag-to-modulate, and accessibility / readability rules.
 tools: Read, Grep, Glob, Bash
 model: sonnet
 ---

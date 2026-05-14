@@ -72,8 +72,13 @@ juce_add_plugin("${PROJECT_NAME}"
     COMPANY_NAME "${COMPANY_NAME}"
     BUNDLE_ID "${BUNDLE_ID}"
 
-    # On MacOS, plugin is copied to /Users/yourname/Library/Audio/Plug-Ins/
-    COPY_PLUGIN_AFTER_BUILD TRUE
+    # On MacOS, JUCE would copy to /Users/yourname/Library/Audio/Plug-Ins/.
+    # On Windows it copies to C:\Program Files\Common Files\VST3\ which needs
+    # admin privileges, and fails when the host (e.g. Ableton) holds the DLL.
+    # We disable the auto-copy and ship a manual install helper instead —
+    # see scripts/install-vst3.ps1 (Windows) and the equivalent install path
+    # under ~/.vst3/ on Linux (handled by ld.so / DAW search paths).
+    COPY_PLUGIN_AFTER_BUILD FALSE
 
     # Change me!
     # A four-character plugin id
@@ -109,14 +114,19 @@ include(SharedCodeDefaults)
 # Just ensure you employ CONFIGURE_DEPENDS so the build system picks up changes
 # If you want to appease the CMake gods and avoid globs, manually add files like so:
 # set(SourceFiles Source/PluginEditor.h Source/PluginProcessor.h Source/PluginEditor.cpp Source/PluginProcessor.cpp)
-file(GLOB_RECURSE SourceFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/source/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/source/*.h")
+file(GLOB_RECURSE SourceFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h")
 target_sources(SharedCode INTERFACE ${SourceFiles})
 
 # Adds a BinaryData target for embedding assets into the binary
 include(Assets)
 
 # MacOS only: Cleans up folder and target organization on Xcode.
-include(XcodePrettify)
+# TODO: re-enable once we have a local override of cmake/XcodePrettify.cmake
+# that uses 'src/' instead of the hardcoded 'source/' (the cmake-includes
+# submodule assumes Pamplejuce's default 'source/' directory).
+# Skipped for now — the module is purely cosmetic for Xcode IDE, no impact
+# on Linux/Windows builds.
+# include(XcodePrettify)
 
 # This is where you can set preprocessor definitions for JUCE and your plugin
 target_compile_definitions(SharedCode
@@ -164,9 +174,13 @@ include(PamplejuceIPP)
 
 # Everything related to the tests target
 include(Tests)
+# cmake-includes/Tests.cmake hardcodes ${CMAKE_CURRENT_SOURCE_DIR}/source as the
+# Tests include path. We renamed source/ -> src/, so we add the real path here.
+target_include_directories(Tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # A separate target for Benchmarks (keeps the Tests target fast)
 include(Benchmarks)
+target_include_directories(Benchmarks PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Output some config for CI (like our PRODUCT_NAME)
 include(GitHubENV)

@@ -14,7 +14,7 @@ You are the doc-keeper for Tessera. Your mission: keep documentation **in sync w
 | `README.md` | Project overview, build/test, MVP status | Each milestone (end of week) |
 | `docs/RT_SAFETY_RULES.md` | RT-safety rules (created in week 1) | When a new rule emerges or an edge case is learned |
 | `docs/ADRs/NNNN-<slug>.md` | Architecture Decision Records (one per decision) | Every time a non-trivial architectural choice is made |
-| `source/dsp/<Module>.h` (Doxygen English) | Public API doc per DSP module | On any public-API change |
+| `src/dsp/<Module>.h` (Doxygen English) | Public API doc per DSP module | On any public-API change |
 | `docs/architecture-engines.md` | DO NOT TOUCH unless explicitly asked | Stable reference, source of truth (kept in original language) |
 | `docs/spec-vst.md`, `docs/spec-updates-v0.2.md`, `docs/design-system.md` | DO NOT TOUCH | Reference docs from the user, kept in original language |
 

@@ -154,7 +154,7 @@ Use them when natural, do not force them:
 
 ## What you do NOT do
 
-- Do not write production code in `source/` — that is for the regular flow. You only edit `docs/learning/{notes,exercises,progress}.md` and produce explanations / quizzes in the chat.
+- Do not write production code in `src/` — that is for the regular flow. You only edit `docs/learning/{notes,exercises,progress}.md` and produce explanations / quizzes in the chat.
 - Do not lecture on basics Maxime already knows from web dev (loops, conditionals, primitives, simple typing).
 - Do not produce full textbook chapters — calibrate to what is C++/DSP-specific.
 - Do not switch to English for the explanation — French is the default. Code blocks stay English.

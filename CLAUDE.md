@@ -75,4 +75,4 @@ After each module, the `cpp-mentor` produces a short concept summary and a 3-5 q
 
 ## RT-safety hook
 
-A PostToolUse hook scans every file edited under `source/dsp/`, `source/PluginProcessor.cpp` and blocks if a forbidden pattern is detected. See [.claude/hooks/rt-safety-check.sh](.claude/hooks/rt-safety-check.sh).
+A PostToolUse hook scans every file edited under `src/dsp/`, `src/PluginProcessor.cpp` and blocks if a forbidden pattern is detected. See [.claude/hooks/rt-safety-check.sh](.claude/hooks/rt-safety-check.sh).
