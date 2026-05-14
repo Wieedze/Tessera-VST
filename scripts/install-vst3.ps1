@@ -103,15 +103,15 @@ function Test-DllLocked {
 function Install-ToPath {
     param([string]$DestParent)
 
-    Write-Host "→ Installing to $DestParent" -ForegroundColor Cyan
+    Write-Host "-> Installing to $DestParent" -ForegroundColor Cyan
 
     if ((Test-RequiresAdmin $DestParent) -and (-not $isAdmin)) {
-        Write-Host "  SKIPPED — requires admin (run PowerShell as administrator to enable this destination)." -ForegroundColor Yellow
+        Write-Host "  SKIPPED - requires admin (run PowerShell as administrator to enable this destination)." -ForegroundColor Yellow
         return $false
     }
 
     if (Test-DllLocked $DestParent) {
-        Write-Host "  SKIPPED — DLL is locked by a host. Close Ableton / disable the device and rerun." -ForegroundColor Yellow
+        Write-Host "  SKIPPED - DLL is locked by a host. Close Ableton / disable the device and rerun." -ForegroundColor Yellow
         return $false
     }
 
@@ -122,14 +122,14 @@ function Install-ToPath {
         Copy-Item -Recurse -Force $sourceBundle $DestParent
         $installed = Join-Path $DestParent "Tessera.vst3\Contents\x86_64-win\Tessera.vst3"
         if (Test-Path $installed) {
-            Write-Host "  OK — installed ($((Get-Item $installed).Length) bytes)." -ForegroundColor Green
+            Write-Host "  OK - installed ($((Get-Item $installed).Length) bytes)." -ForegroundColor Green
             return $true
         } else {
-            Write-Host "  ERROR — copy completed but binary missing at $installed" -ForegroundColor Red
+            Write-Host "  ERROR - copy completed but binary missing at $installed" -ForegroundColor Red
             return $false
         }
     } catch {
-        Write-Host "  ERROR — $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "  ERROR - $($_.Exception.Message)" -ForegroundColor Red
         return $false
     }
 }
@@ -137,7 +137,7 @@ function Install-ToPath {
 # ---- 3. Install ---------------------------------------------------------------
 
 if (-not $isAdmin) {
-    Write-Host "(running without admin — paths under Program Files will be skipped)" -ForegroundColor DarkGray
+    Write-Host "(running without admin - paths under Program Files will be skipped)" -ForegroundColor DarkGray
     Write-Host ""
 }
 
