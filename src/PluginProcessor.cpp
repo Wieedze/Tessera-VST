@@ -26,9 +26,13 @@ PluginProcessor::PluginProcessor()
     fxTypeParam         = apvts.getRawParameterValue ("fx_type");
     stutterRateParam    = apvts.getRawParameterValue ("stutter_rate");
     reverserWindowParam = apvts.getRawParameterValue ("reverser_window_ms");
+    tapeStopLengthParam = apvts.getRawParameterValue ("tapestop_length_ms");
+    tapeStopCurveParam  = apvts.getRawParameterValue ("tapestop_curve");
     jassert (fxTypeParam         != nullptr);
     jassert (stutterRateParam    != nullptr);
     jassert (reverserWindowParam != nullptr);
+    jassert (tapeStopLengthParam != nullptr);
+    jassert (tapeStopCurveParam  != nullptr);
 }
 
 PluginProcessor::~PluginProcessor() = default;
@@ -42,7 +46,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
     layout.add (std::make_unique<juce::AudioParameterChoice> ( // RT-OK: parameter layout (host thread, init time)
         juce::ParameterID { "fx_type", 1 },
         "FX Type",
-        juce::StringArray { "Thru", "Stutter", "Reverser" },
+        juce::StringArray { "Thru", "Stutter", "Reverser", "TapeStop" },
         0)); // default = Thru
 
     // stutter_rate: musical division for the Stutter loop window.
@@ -58,6 +62,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout PluginProcessor::createParam
         "Reverser Window",
         juce::NormalisableRange<float> (50.0f, 2000.0f, 1.0f),
         250.0f));
+
+    // tapestop_length_ms: cycle duration of the TapeStop deceleration, in ms.
+    layout.add (std::make_unique<juce::AudioParameterFloat> ( // RT-OK: parameter layout (host thread, init time)
+        juce::ParameterID { "tapestop_length_ms", 1 },
+        "TapeStop Length",
+        juce::NormalisableRange<float> (200.0f, 3000.0f, 1.0f),
+        600.0f));
+
+    // tapestop_curve: deceleration shape (Linear / ExpFast / ExpSlow).
+    layout.add (std::make_unique<juce::AudioParameterChoice> ( // RT-OK: parameter layout (host thread, init time)
+        juce::ParameterID { "tapestop_curve", 1 },
+        "TapeStop Curve",
+        juce::StringArray { "Linear", "ExpFast", "ExpSlow" },
+        0)); // default = Linear
 
     return layout;
 }
@@ -182,9 +200,11 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
 
     // 2. Snapshot the relevant APVTS values for this block. Atomic loads —
     //    no string lookups in the audio path.
-    const auto fxIdx          = static_cast<int>   (fxTypeParam->load());
-    const auto rateIdx        = static_cast<int>   (stutterRateParam->load());
-    const auto reverserWinMs  =                     reverserWindowParam->load();
+    const auto fxIdx           = static_cast<int>   (fxTypeParam->load());
+    const auto rateIdx         = static_cast<int>   (stutterRateParam->load());
+    const auto reverserWinMs   =                     reverserWindowParam->load();
+    const auto tapeStopLenMs   =                     tapeStopLengthParam->load();
+    const auto tapeCurveIdx    = static_cast<int>   (tapeStopCurveParam->load());
 
     // 3. Build the FxParams snapshot (sampleRate, bpm, stutter rate, ...).
     tessera::dsp::FxParams params;
@@ -198,8 +218,11 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
                 params.bpm = *bpmOpt;
         }
     }
-    params.stutterRate     = kStutterRateValues[juce::jlimit (0, kStutterRateCount - 1, rateIdx)];
+    params.stutterRate      = kStutterRateValues[juce::jlimit (0, kStutterRateCount - 1, rateIdx)];
     params.reverserWindowMs = reverserWinMs;
+    params.tapeStopLengthMs = tapeStopLenMs;
+    params.tapeStopCurve    = static_cast<tessera::dsp::TapeCurve> (
+        juce::jlimit (0, static_cast<int> (tessera::dsp::TapeCurve::Count) - 1, tapeCurveIdx));
 
     // 4. Dispatch to the selected FX. O(1) lookup in FxBank (array index).
     const auto currentFx = static_cast<tessera::dsp::FxType> (
