@@ -62,6 +62,8 @@ private:
     std::atomic<float>* fxTypeParam          { nullptr };
     std::atomic<float>* stutterRateParam     { nullptr };
     std::atomic<float>* reverserWindowParam  { nullptr };
+    std::atomic<float>* tapeStopLengthParam  { nullptr };
+    std::atomic<float>* tapeStopCurveParam   { nullptr };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

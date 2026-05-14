@@ -29,8 +29,21 @@ namespace tessera::dsp
         Thru,     // bypass — input passes through unchanged
         Stutter,  // re-read a recent slice of capture buffer at a musical rate
         Reverser, // re-read a recent slice of capture buffer in reverse
-        // TapeStop, Filter, Bitcrusher, Gater, PitchShifter, Granular, Slicer
+        TapeStop, // variable-speed playback, decelerates from 1.0 -> 0.0 over a cycle
+        // Filter, Bitcrusher, Gater, PitchShifter, Granular, Slicer
         // will be added in upcoming sessions. Always insert BEFORE Count.
+        Count
+    };
+
+    /// Deceleration curve used by TapeStopFx.
+    /// Linear  : speed = 1 - t                  (straight ramp)
+    /// ExpFast : speed = (1 - t)^2              (quick early drop, long tail)
+    /// ExpSlow : speed = sqrt(1 - t)            (slow start, hard stop)
+    enum class TapeCurve
+    {
+        Linear,
+        ExpFast,
+        ExpSlow,
         Count
     };
 
@@ -60,6 +73,10 @@ namespace tessera::dsp
 
         // Reverser-specific
         float reverserWindowMs { 250.0f }; // duration of the slice replayed in reverse
+
+        // TapeStop-specific
+        float     tapeStopLengthMs { 600.0f };          // cycle duration in ms
+        TapeCurve tapeStopCurve    { TapeCurve::Linear }; // deceleration shape
     };
 
     /**
