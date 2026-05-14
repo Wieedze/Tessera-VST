@@ -27,18 +27,35 @@ namespace tessera::dsp
         const int numSamples  = buffer.getNumSamples();
         const int numChannels = std::min (buffer.getNumChannels(), 2);
 
+        // Detect if the input block is essentially silent (< -60 dB peak).
+        // If so, we skip the cycle-end re-anchor: anchoring on silence would
+        // make Reverser replay silence forever. Instead we keep the previous
+        // anchor active — the "last good" reversed window keeps looping until
+        // audio resumes. Musically this gives a "freeze on release" feel
+        // rather than a hard audio cut.
+        constexpr float kSilenceThreshold = 1.0e-3f; // ~-60 dBFS
+        bool inputSilent = true;
+        for (int ch = 0; ch < numChannels && inputSilent; ++ch)
+        {
+            const float* in = buffer.getReadPointer (ch);
+            for (int i = 0; i < numSamples; ++i)
+            {
+                if (std::abs (in[i]) > kSilenceThreshold)
+                {
+                    inputSilent = false;
+                    break;
+                }
+            }
+        }
+
         // Hot loop. RT-safe: no alloc, no lock, no exception path.
         for (int i = 0; i < numSamples; ++i)
         {
-            // Re-anchor when:
-            //   - we have not anchored yet (first call after reset()), OR
-            //   - we have played a full windowLength of samples — refresh the
-            //     anchor to the most recent slice. This produces a series of
-            //     "reversed micro-windows", each truly reversed, with the
-            //     anchor following the live audio. Avoids the silent-anchor
-            //     trap when the FX is activated between two sounds.
-            if (! anchored || samplesPlayed >= anchoredWindowLength)
+            if (! anchored)
             {
+                // First anchor after reset() — always happens, even if the
+                // input is silent: the user just triggered the FX, we owe
+                // them an immediate response.
                 anchoredWindowLength = std::max (
                     1,
                     static_cast<int> (params.reverserWindowMs * 0.001 * sampleRate));
@@ -46,6 +63,22 @@ namespace tessera::dsp
                 samplesPlayed = 0;
                 playPos       = 0;
                 anchored      = true;
+            }
+            else if (samplesPlayed >= anchoredWindowLength)
+            {
+                // Cycle end. Re-anchor on the latest slice ONLY if there is
+                // audio coming in this block. If the input is silent, just
+                // restart the same reversed window (keep startPos) so we
+                // don't replace a "good" window with one full of silence.
+                if (! inputSilent)
+                {
+                    anchoredWindowLength = std::max (
+                        1,
+                        static_cast<int> (params.reverserWindowMs * 0.001 * sampleRate));
+                    startPos = capture.getWritePos() - anchoredWindowLength;
+                }
+                samplesPlayed = 0;
+                playPos       = 0;
             }
 
             // Symmetric reflection inside the current window: playPos 0..N-1

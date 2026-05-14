@@ -27,19 +27,35 @@ namespace tessera::dsp
         const int numSamples  = buffer.getNumSamples();
         const int numChannels = std::min (buffer.getNumChannels(), 2);
 
+        // Detect if the input block is essentially silent (< -60 dB peak).
+        // If so, we skip the cycle-end re-anchor: anchoring on silence would
+        // make Stutter loop silence forever. Instead we keep the previous
+        // anchor active — the "last good" loop continues until audio resumes.
+        constexpr float kSilenceThreshold = 1.0e-3f; // ~-60 dBFS
+        bool inputSilent = true;
+        for (int ch = 0; ch < numChannels && inputSilent; ++ch)
+        {
+            const float* in = buffer.getReadPointer (ch);
+            for (int i = 0; i < numSamples; ++i)
+            {
+                if (std::abs (in[i]) > kSilenceThreshold)
+                {
+                    inputSilent = false;
+                    break;
+                }
+            }
+        }
+
         // Hot loop. RT-safe: no alloc, no lock, no exception path.
         for (int i = 0; i < numSamples; ++i)
         {
-            // Re-anchor when:
-            //   - we have not anchored yet (first call after reset()), OR
-            //   - we have played a full loopLength of samples — refresh the
-            //     anchor to the most recent slice. This gives a "tight stutter
-            //     that follows the audio": each step is a true loop of the
-            //     last loopLength ms, then we step to the next slice.
-            //
             // duration_seconds = stutterRate * 240 / BPM  → samples = duration * sampleRate.
-            if (! anchored || samplesPlayed >= anchoredLoopLength)
+            if (! anchored)
             {
+                // First anchor after reset() — always happens, even if the
+                // input is silent: the user just triggered the FX, we owe
+                // them an immediate response (silence if no audio is in
+                // capture, which they will fix by playing something).
                 anchoredLoopLength = std::max (
                     1,
                     static_cast<int> (params.stutterRate * 240.0 / params.bpm * sampleRate));
@@ -47,6 +63,22 @@ namespace tessera::dsp
                 samplesPlayed = 0;
                 playPos       = 0;
                 anchored      = true;
+            }
+            else if (samplesPlayed >= anchoredLoopLength)
+            {
+                // Cycle end. Re-anchor on the latest slice ONLY if there is
+                // audio coming in this block. If the input is silent, just
+                // restart the same loop (keep startPos) so we don't replace
+                // a "good" loop with one full of silence.
+                if (! inputSilent)
+                {
+                    anchoredLoopLength = std::max (
+                        1,
+                        static_cast<int> (params.stutterRate * 240.0 / params.bpm * sampleRate));
+                    startPos = capture.getWritePos() - anchoredLoopLength;
+                }
+                samplesPlayed = 0;
+                playPos       = 0;
             }
 
             const double readPos = static_cast<double> (startPos + playPos);
