@@ -56,6 +56,10 @@ private:
     tessera::dsp::CaptureBuffer captureBuffer;
     tessera::dsp::FxBank        fxBank;
 
+    // Previous FxType — used to detect "user switched to a new FX" and call
+    // reset() on the new module so it can re-anchor cleanly (one-shot trigger).
+    tessera::dsp::FxType        lastFxType { tessera::dsp::FxType::Thru };
+
     // Cached APVTS pointers — refreshed in the constructor (after apvts is built)
     // and read via std::atomic<float>::load() in processBlock. NEVER call
     // apvts.getRawParameterValue() inside the audio path (string hash cost).

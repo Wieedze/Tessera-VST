@@ -225,8 +225,17 @@ void PluginProcessor::processBlock (juce::AudioBuffer<float>& buffer,
         juce::jlimit (0, static_cast<int> (tessera::dsp::TapeCurve::Count) - 1, tapeCurveIdx));
 
     // 4. Dispatch to the selected FX. O(1) lookup in FxBank (array index).
+    //    When the user switches to a different FX, we call reset() on the new
+    //    one so it re-anchors cleanly (one-shot trigger semantic). Without this,
+    //    StutterFx / ReverserFx would keep their stale playPos and anchor from
+    //    the previous activation, blurring the trigger.
     const auto currentFx = static_cast<tessera::dsp::FxType> (
         juce::jlimit (0, static_cast<int> (tessera::dsp::FxType::Count) - 1, fxIdx));
+    if (currentFx != lastFxType)
+    {
+        fxBank.get (currentFx).reset();
+        lastFxType = currentFx;
+    }
     fxBank.get (currentFx).process (buffer, captureBuffer, params);
 }
 

@@ -6,17 +6,19 @@ namespace tessera::dsp
 {
     /**
      * @file ReverserFx.h
-     * @brief Reverser FX — replays the last N ms of the capture buffer in reverse.
+     * @brief Reverser FX — replays a fixed slice of the capture buffer in reverse.
      *
-     * Each block, re-anchors the window to the current writePos and reads
-     * backwards: when playPos advances 0, 1, 2, ..., the position inside the
-     * window steps (windowLength - 1), (windowLength - 2), ..., 0. This is
-     * the classic "symmetric reflection" of an index — N-1-i mirrors i around
-     * the centre of the window.
+     * Trigger semantic (one-shot anchor) :
+     * - reset() is called when the host (PluginProcessor) detects the user
+     *   switching INTO Reverser. anchored is set to false.
+     * - On the first process() call after reset(), we anchor: startPos =
+     *   writePos - windowLength and LOCK windowLength. Subsequent process()
+     *   calls keep the same anchor, so the SAME slice of audio is reversed
+     *   over and over — a real reverse loop, not a sliding-window delay.
      *
-     * No feedback, no internal filter — a stateless transform on top of the
-     * shared CaptureBuffer. Simpler than StutterFx because the output sample
-     * order is purely a function of (writePos, windowLength, playPos).
+     * Symmetric reflection: when playPos advances 0, 1, 2, ..., the position
+     * inside the window steps (windowLength - 1), (windowLength - 2), ..., 0.
+     * The math is the classic mirror N-1-i.
      *
      * @see docs/architecture-engines.md §3
      */
@@ -34,8 +36,11 @@ namespace tessera::dsp
         FxType getType() const override;
 
     private:
-        double sampleRate { 0.0 }; // captured at prepare()
-        int    playPos    { 0 };   // loops inside [0, windowLength); reset at reset()
+        double  sampleRate           { 0.0 }; // captured at prepare()
+        bool    anchored             { false }; // set true on first process() after reset()
+        int64_t startPos             { 0 };   // absolute write-position anchor (set once)
+        int     anchoredWindowLength { 1 };   // window length in samples, locked at anchor time
+        int     playPos              { 0 };   // monotonically advances; modulo anchoredWindowLength is the relative position
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ReverserFx)
     };

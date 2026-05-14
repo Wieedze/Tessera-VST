@@ -12,7 +12,8 @@ namespace tessera::dsp
 
     void StutterFx::reset()
     {
-        playPos = 0;
+        anchored = false;
+        playPos  = 0;
     }
 
     void StutterFx::process (juce::AudioBuffer<float>& buffer,
@@ -22,15 +23,18 @@ namespace tessera::dsp
         if (sampleRate <= 0.0 || params.bpm <= 0.0)
             return; // Not prepared, or invalid host info: leave buffer alone.
 
-        // Compute the loop window length in samples from the musical rate.
-        // stutterRate is a fraction of a whole note (0.0625 = 1/16, 0.125 = 1/8...).
+        // First call after reset(): anchor the loop window once and LOCK
+        // loopLength. Subsequent calls reuse the same anchor, so the same
+        // slice of audio loops repeatedly (true stutter, not a sliding delay).
         // duration_seconds = stutterRate * 240 / BPM  → samples = duration * sampleRate.
-        const int loopLength = std::max (
-            1,
-            static_cast<int> (params.stutterRate * 240.0 / params.bpm * sampleRate));
-
-        const int64_t writePos  = capture.getWritePos();
-        const int64_t loopStart = writePos - loopLength;
+        if (! anchored)
+        {
+            anchoredLoopLength = std::max (
+                1,
+                static_cast<int> (params.stutterRate * 240.0 / params.bpm * sampleRate));
+            startPos = capture.getWritePos() - anchoredLoopLength;
+            anchored = true;
+        }
 
         const int numSamples  = buffer.getNumSamples();
         const int numChannels = std::min (buffer.getNumChannels(), 2);
@@ -38,8 +42,8 @@ namespace tessera::dsp
         // Hot loop. RT-safe: no alloc, no lock, no exception path.
         for (int i = 0; i < numSamples; ++i)
         {
-            const int    relativePos = playPos % loopLength;
-            const double readPos     = static_cast<double> (loopStart + relativePos);
+            const int    relativePos = playPos % anchoredLoopLength;
+            const double readPos     = static_cast<double> (startPos + relativePos);
 
             for (int ch = 0; ch < numChannels; ++ch)
             {

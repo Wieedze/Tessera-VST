@@ -6,12 +6,22 @@ namespace tessera::dsp
 {
     /**
      * @file StutterFx.h
-     * @brief Stutter / repeat FX — loops the last N samples of the capture buffer.
+     * @brief Stutter / repeat FX — loops a fixed slice of the capture buffer.
      *
-     * On each process() call, captures the current writePos of the CaptureBuffer,
-     * walks backwards by loopLength samples (derived from the musical stutter rate
-     * and host BPM), and re-reads that window in a tight loop. The window is
-     * recomputed every block, giving the "live repeating" feel.
+     * Trigger semantic (one-shot anchor) :
+     * - reset() is called when the host (PluginProcessor) detects the user
+     *   switching INTO Stutter from another FX. anchored is set to false.
+     * - On the first process() call after reset(), we anchor: startPos =
+     *   writePos - loopLength, and we LOCK the loopLength derived from the
+     *   stutter_rate at that instant.
+     * - Subsequent process() calls keep the same anchor: playPos advances and
+     *   wraps modulo loopLength, so the SAME slice of audio loops repeatedly.
+     *   This is a real stutter, not a sliding-window delay.
+     *
+     * Caveat — the CaptureBuffer keeps being written by other process() blocks,
+     * so after roughly bufferSize samples (~32 s at 48 kHz) the anchored slice
+     * gets overwritten. Acceptable for short musical bursts; a future polish
+     * may freeze() the capture for the duration.
      *
      * @see docs/architecture-engines.md §3 (StutterFx example)
      */
@@ -29,8 +39,11 @@ namespace tessera::dsp
         FxType getType() const override;
 
     private:
-        double sampleRate { 0.0 };  // captured at prepare()
-        int    playPos    { 0 };    // loops inside [0, loopLength); reset at reset()
+        double  sampleRate         { 0.0 }; // captured at prepare()
+        bool    anchored           { false }; // set true on first process() after reset()
+        int64_t startPos           { 0 };   // absolute write-position anchor (set once)
+        int     anchoredLoopLength { 1 };   // loop length in samples, locked at anchor time
+        int     playPos            { 0 };   // monotonically advances; modulo anchoredLoopLength gives the read offset
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (StutterFx)
     };
