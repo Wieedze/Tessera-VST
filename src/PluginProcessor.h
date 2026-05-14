@@ -59,8 +59,9 @@ private:
     // Cached APVTS pointers — refreshed in the constructor (after apvts is built)
     // and read via std::atomic<float>::load() in processBlock. NEVER call
     // apvts.getRawParameterValue() inside the audio path (string hash cost).
-    std::atomic<float>* fxTypeParam      { nullptr };
-    std::atomic<float>* stutterRateParam { nullptr };
+    std::atomic<float>* fxTypeParam          { nullptr };
+    std::atomic<float>* stutterRateParam     { nullptr };
+    std::atomic<float>* reverserWindowParam  { nullptr };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PluginProcessor)
 };

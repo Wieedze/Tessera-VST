@@ -113,7 +113,7 @@ Suit la phasing dans `docs/spec-vst.md` §12 (étendu par `spec-updates-v0.2.md`
 Plan détaillé : [docs/sprint-w3-plan.md](../sprint-w3-plan.md). Une feature branch par phase (cf. `.claude/rules/git-style.md` §"Feature branches").
 
 - [ ] **S1** `feat/workflow-install-script` — désactiver COPY_PLUGIN_AFTER_BUILD + PowerShell helper
-- [ ] **S2** `feat/fx-reverser` — Reverser FX + tests + APVTS
+- [x] **S2** `feat/fx-reverser` — Reverser FX + tests + APVTS (audible in Ableton ; ugly until S6 quality pass — no crossfade/smoothing yet)
 - [ ] **S3** `feat/fx-tapestop` — TapeStop FX (variable speed, curve)
 - [ ] **S4** `feat/fx-filter` — Filter FX (juce::dsp::StateVariableTPTFilter)
 - [ ] **S5** `feat/fx-bitcrusher` — Bitcrusher FX (quantize + S&H)
