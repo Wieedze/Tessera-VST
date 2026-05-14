@@ -12,8 +12,9 @@ namespace tessera::dsp
 
     void ReverserFx::reset()
     {
-        anchored = false;
-        playPos  = 0;
+        anchored      = false;
+        samplesPlayed = 0;
+        playPos       = 0;
     }
 
     void ReverserFx::process (juce::AudioBuffer<float>& buffer,
@@ -23,33 +24,39 @@ namespace tessera::dsp
         if (sampleRate <= 0.0)
             return; // not prepared
 
-        // First call after reset(): anchor the window once and lock its length.
-        // Window length in samples, derived from the user-set duration in ms.
-        // Clamp to at least 1 to avoid divide-by-zero on the modulo below.
-        if (! anchored)
-        {
-            anchoredWindowLength = std::max (
-                1,
-                static_cast<int> (params.reverserWindowMs * 0.001 * sampleRate));
-            startPos = capture.getWritePos() - anchoredWindowLength;
-            anchored = true;
-        }
-
         const int numSamples  = buffer.getNumSamples();
         const int numChannels = std::min (buffer.getNumChannels(), 2);
 
         // Hot loop. RT-safe: no alloc, no lock, no exception path.
         for (int i = 0; i < numSamples; ++i)
         {
-            // The reflection: i goes 0 -> windowLength-1, but inside the window
-            // we read (windowLength - 1 - relPos) which goes windowLength-1 -> 0.
-            const int    relPos  = playPos % anchoredWindowLength;
-            const double readPos = static_cast<double> (startPos + (anchoredWindowLength - 1 - relPos));
+            // Re-anchor when:
+            //   - we have not anchored yet (first call after reset()), OR
+            //   - we have played a full windowLength of samples — refresh the
+            //     anchor to the most recent slice. This produces a series of
+            //     "reversed micro-windows", each truly reversed, with the
+            //     anchor following the live audio. Avoids the silent-anchor
+            //     trap when the FX is activated between two sounds.
+            if (! anchored || samplesPlayed >= anchoredWindowLength)
+            {
+                anchoredWindowLength = std::max (
+                    1,
+                    static_cast<int> (params.reverserWindowMs * 0.001 * sampleRate));
+                startPos      = capture.getWritePos() - anchoredWindowLength;
+                samplesPlayed = 0;
+                playPos       = 0;
+                anchored      = true;
+            }
+
+            // Symmetric reflection inside the current window: playPos 0..N-1
+            // maps to (N-1)..0, so we read the captured slice in reverse.
+            const double readPos = static_cast<double> (startPos + (anchoredWindowLength - 1 - playPos));
 
             for (int ch = 0; ch < numChannels; ++ch)
                 buffer.setSample (ch, i, capture.readInterpolated (ch, readPos));
 
             ++playPos;
+            ++samplesPlayed;
         }
     }
 

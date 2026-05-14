@@ -38,9 +38,10 @@ namespace tessera::dsp
     private:
         double  sampleRate           { 0.0 }; // captured at prepare()
         bool    anchored             { false }; // set true on first process() after reset()
-        int64_t startPos             { 0 };   // absolute write-position anchor (set once)
-        int     anchoredWindowLength { 1 };   // window length in samples, locked at anchor time
-        int     playPos              { 0 };   // monotonically advances; modulo anchoredWindowLength is the relative position
+        int64_t startPos             { 0 };   // absolute write-position anchor for the current window
+        int     anchoredWindowLength { 1 };   // window length in samples, locked at first anchor
+        int     samplesPlayed        { 0 };   // counts samples since last (re)anchor; triggers re-anchor when >= windowLength
+        int     playPos              { 0 };   // position inside the current window (0..anchoredWindowLength-1)
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ReverserFx)
     };
